@@ -1,10 +1,8 @@
 import { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import ProfilePopup from "../pages/ProfilePage";
 import SettingsPopup from "../pages/SettingsPage";
 import { useAuth } from "../contexts/AuthContext"; // Use Supabase auth context
 import { useThemeStore } from "../lib/useThemeStore";
-import { Menu, Transition } from "@headlessui/react";
 import { 
   IconMessageCircleFilled, 
   IconSettingsFilled, 
@@ -17,10 +15,14 @@ import {
 } from "@tabler/icons-react";
 import Logo from "./Logo";
 import { Session } from "@supabase/supabase-js"; // Import Supabase Session type
+import { supabase } from '../supabase/supabaseClient';
 
 //-----HeroUI-----
-import { addToast,  } from '@heroui/react';
-import { supabase } from '../supabase/supabaseClient';
+import { addToast, Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem } from '@heroui/react';
+  import { ArrowRightStartOnRectangleIcon,   } from "@heroicons/react/24/solid";
 
 interface AuthUser {
   fullName?: string;
@@ -30,7 +32,6 @@ interface AuthUser {
 
 const Navbar = () => {
     const navigate = useNavigate();
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const { session } = useAuth(); // Get Supabase session
   const authUser = session?.user as AuthUser; // Type-cast Supabase user
@@ -68,7 +69,7 @@ const Navbar = () => {
 
   return (
     <>
-      <ProfilePopup isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
+      
       <SettingsPopup isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
 
       <aside
@@ -159,30 +160,14 @@ const Navbar = () => {
               Settings
             </span>
           </button>
-
-          <button
-            onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-            className="flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-base-100 transition-colors"
-          >
-            <div
-              className={`w-6 h-6 shrink-0 transition-transform duration-300 ${
-                theme === "light" ? "rotate-0" : "rotate-180"
-              }`}
-            >
-              {theme === "light" ? <IconMoonFilled className="w-4 h-4" /> : <IconSunFilled className="w-4 h-4" />}
-            </div>
-            <span className={`transition-all duration-300 ${isMobile || isCollapsed ? "opacity-0 w-0" : "opacity-100 w-auto"} whitespace-nowrap`}>
-              Toggle Theme
-            </span>
-          </button>
         </div>
 
         <div className="border-t border-base-300 my-2"></div>
 
         {/* User Profile Section - Improved Typings */}
         {session && ( // Use Supabase session for authentication check
-          <Menu as="div" className="relative">
-            <Menu.Button className="w-full">
+          <Dropdown>
+            <DropdownTrigger>
               <div className={`
                 flex items-center gap-3 p-2 hover:bg-base-100 rounded-2xl transition-all duration-300 ease-in-out
                 ${isMobile || isCollapsed ? "justify-start" : ""}
@@ -207,42 +192,14 @@ const Navbar = () => {
                   </p>
                 </div>
               </div>
-            </Menu.Button>
-
-            <Transition
-              enter="transition duration-200 ease-out"
-              enterFrom="transform scale-95 opacity-0"
-              enterTo="transform scale-100 opacity-100"
-              leave="transition duration-150 ease-in"
-              leaveFrom="transform scale-100 opacity-100"
-              leaveTo="transform scale-95 opacity-0"
-            >
-              <Menu.Items className="absolute bottom-16 left-2 w-48 bg-base-100 border border-base-300 rounded-2xl shadow-lg p-2">
-                <Menu.Item>
-                  {({ active }: { active: boolean }) => ( // Explicit type for active
-                    <button
-                      onClick={() => setIsProfileOpen(true)}
-                      className={`
-                        w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm
-                        transition-colors duration-150
-                        ${active ? "bg-base-200" : ""}
-                      `}
-                    >
-                      <IconUserFilled className="w-4 h-4" />
-                      <span>Profile</span>
-                    </button>
-                  )}
-                </Menu.Item>
-                <Menu.Item>
-                  {({ active }: { active: boolean }) => ( // Explicit type for active
-                    <button onClick={handleLogout} className="px-4 py-2 rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors duration-200">
-                    Logout
-                  </button>
-                  )}
-                </Menu.Item>
-              </Menu.Items>
-            </Transition>
-          </Menu>
+            </DropdownTrigger>
+              <DropdownMenu aria-label="Static Actions">
+                  {/*<DropdownItem key="copy">some other options</DropdownItem> // future updates */}
+                  <DropdownItem startContent={<ArrowRightStartOnRectangleIcon className="size-6"/>} className="text-danger" color="danger" onPress={handleLogout} key="new">Logout</DropdownItem>
+                  
+                  
+              </DropdownMenu>
+          </Dropdown>
         )}
       </aside>
     </>

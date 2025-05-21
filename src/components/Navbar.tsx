@@ -47,7 +47,9 @@ const Navbar = () => {
               <button onClick={() => navigate('/login')} className="px-4 py-2 rounded-md text-sm font-medium text-white bg-primary hover:bg-primary/90 transition-colors duration-200">
                 Login
               </button>
+              
             )}
+            <button onClick={() => navigate('/chat')} className='px-4 py-2 rounded-md text-sm font-medium text-white bg-primary hover:bg-primary/90 transition-colors duration-200'>chat page</button>
           </div>
         </div>
       </div>

@@ -5,6 +5,7 @@ import { login } from "../utils/auth"; // Use your auth utility
 import Logo from "./Logo"; // Adjust path if needed
 import { ThemeToggle } from "./ThemeSwitcher";
 import {  IconBrandGoogleFilled } from '@tabler/icons-react';
+import { ThemedImage } from "./ThemedImage";
 
 //------- HeroUI --------
 import { EyeIcon, EyeSlashIcon,  } from "@heroicons/react/24/solid";
@@ -33,9 +34,9 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-2 bg-black p-2 gap-1">
+    <div className="min-h-screen flex flex-row bg-black p-2 gap-1">
       {/* Left Side - Form */}
-      <div className="flex flex-col justify-center items-center p-6 sm:p-12 bg-gradient-to-b from-base-100 to-base-200 rounded-3xl">
+      <div className="flex flex-col w-full justify-center items-center p-6 sm:p-12 bg-gradient-to-b from-base-100 to-base-200 rounded-3xl">
         <div className="w-full max-w-sm space-y-6">
           {/* Logo and Title */}
           <div className="flex flex-col text-center items-center gap-6">
@@ -135,15 +136,17 @@ const LoginPage = () => {
         </div>
       </div>
       {/* Right Side - Image */}
-      <div className="hidden lg:block relative bg-base-100 rounded-3xl">
-        <Image
-          src="/dark-log.jpg"
-          alt="Decorative background"
-          className="absolute inset-0 w-full h-full object-cover rounded-3xl"
-        />
+      <div className="w-full h-full">
+        <ThemedImage 
+        lightSrc="/whitelogin.jpg"
+        darkSrc="/blacklogin.jpg"
+        alt="Decorative background"
+        className="absolute insert-0 w-full h-full object-cover rounded-3xl"
+      />
+      </div>
         <div className="absolute bottom-4 right-4 text-xs text-gray-200 bg-black/20 px-1 rounded">V1.0</div>
       </div>
-    </div>
+    
   );
 };
 
