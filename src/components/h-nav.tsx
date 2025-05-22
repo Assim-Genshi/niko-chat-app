@@ -2,42 +2,44 @@ import { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import SettingsPopup from "../pages/SettingsPage";
 import { useAuth } from "../contexts/AuthContext"; // Use Supabase auth context
-import { useThemeStore } from "../lib/useThemeStore";
-import { 
-  IconMessageCircleFilled, 
-  IconSettingsFilled, 
-  IconMoonFilled, 
-  IconSunFilled, 
-  IconLogout, 
-  IconUserFilled, 
-  IconChevronLeftPipe, 
-  IconBellFilled 
-} from "@tabler/icons-react";
 import Logo from "./Logo";
+import { useProfilePageLogic } from '../pages/profile/ProfilePageLogic'; // Adjust path as needed
+
 import { Session } from "@supabase/supabase-js"; // Import Supabase Session type
 import { supabase } from '../supabase/supabaseClient';
 
 //-----HeroUI-----
-import { addToast, Dropdown,
+import { addToast, 
+  Dropdown,
   DropdownTrigger,
   DropdownMenu,
-  DropdownItem } from '@heroui/react';
-  import { ArrowRightStartOnRectangleIcon,   } from "@heroicons/react/24/solid";
-
+  DropdownItem,
+  Avatar
+  } from '@heroui/react';
+  import { ArrowRightStartOnRectangleIcon, UserIcon, ChevronDoubleLeftIcon, ChatBubbleOvalLeftIcon, BellIcon, Cog6ToothIcon  } from "@heroicons/react/24/solid";
+    
+  
+    
 interface AuthUser {
   fullName?: string;
   email?: string;
   profilePic?: string;
+  
 }
 
 const Navbar = () => {
     const navigate = useNavigate();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const { session } = useAuth(); // Get Supabase session
-  const authUser = session?.user as AuthUser; // Type-cast Supabase user
+  const { authUser } = useProfilePageLogic(); // Type-cast Supabase user
   const [isMobile, setIsMobile] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const { theme, setTheme } = useThemeStore();
+  
+
+  const displayName = authUser?.user_metadata?.name || authUser?.user_metadata?.display_name || authUser?.email?.split('@')[0] || "User";
+    const profilePicUrl = authUser?.user_metadata?.profilePic || undefined; // Let HeroImage handle undefined with a fallback or style it
+    const bannerUrl = authUser?.user_metadata?.bannerUrl || "/default-banner.jpg"; // Provide a default banner path
+
 
   const handleLogout = async () => {
     try {
@@ -95,7 +97,7 @@ const Navbar = () => {
             className="w-full flex items-center justify-center p-2 border border-base-300 rounded-2xl bg-base-200 hover:bg-base-100 transition-all duration-200 shadow-2xl"
           >
             <div className={`w-6 h-6 shrink-0 transition-transform duration-300 ${isCollapsed ? "rotate-180" : "rotate-0"}`}>
-              <IconChevronLeftPipe className="w-4 h-4" /> {/* Added size class */}
+              <ChevronDoubleLeftIcon className="h-6 w-6" /> {/* Added size class */}
             </div>
           </button>
         )}
@@ -110,7 +112,7 @@ const Navbar = () => {
               }`
             }
           >
-            <IconMessageCircleFilled className="w-6 h-6 shrink-0" />
+            <ChatBubbleOvalLeftIcon className="w-6 h-6 shrink-0" />
             <span className={`transition-all duration-300 ${isMobile || isCollapsed ? "opacity-0 w-0" : "opacity-100 w-auto"} whitespace-nowrap`}>
               Chat
             </span>
@@ -126,7 +128,7 @@ const Navbar = () => {
                   }`
                 }
               >
-                <IconBellFilled className="w-6 h-6 shrink-0" />
+                <BellIcon className="w-6 h-6 shrink-0" />
                 <span className={`transition-all duration-300 ${isMobile || isCollapsed ? "opacity-0 w-0" : "opacity-100 w-auto"} whitespace-nowrap`}>
                   Notifications
                 </span>
@@ -140,7 +142,7 @@ const Navbar = () => {
                   }`
                 }
               >
-                <IconUserFilled className="w-6 h-6 shrink-0" />
+                <UserIcon className="w-6 h-6 shrink-0" />
                 <span className={`transition-all duration-300 ${isMobile || isCollapsed ? "opacity-0 w-0" : "opacity-100 w-auto"} whitespace-nowrap`}>
                   Profile
                 </span>
@@ -155,7 +157,7 @@ const Navbar = () => {
             onClick={() => setIsSettingsOpen(true)}
             className="flex items-center gap-3 px-3 py-3 rounded-2xl hover:bg-base-100 transition-colors"
           >
-            <IconSettingsFilled className="w-6 h-6 shrink-0" />
+            <Cog6ToothIcon className="w-6 h-6 shrink-0" />
             <span className={`transition-all duration-300 ${isMobile || isCollapsed ? "opacity-0 w-0" : "opacity-100 w-auto"} whitespace-nowrap`}>
               Settings
             </span>
@@ -169,23 +171,18 @@ const Navbar = () => {
           <Dropdown>
             <DropdownTrigger>
               <div className={`
-                flex items-center gap-3 p-2 hover:bg-base-100 rounded-2xl transition-all duration-300 ease-in-out
-                ${isMobile || isCollapsed ? "justify-start" : ""}
+                flex items-center gap-3 p-2 hover:bg-base-100 rounded-2xl transition-all duration-300 ease-in-out cursor-pointer
+                ${isMobile || isCollapsed ? "justify-start p-1" : ""}
               `}>
-                <div className="w-8 h-8 shrink-0 rounded-full overflow-hidden">
-                  <img
-                    src={authUser?.profilePic || "/avatar.png"}
-                    alt="Profile"
-                    className="w-9 h-9 object-cover transition-transform duration-300 hover:scale-105"
-                  />
-                </div>
+                  <Avatar className="shrink-0 overflow-hidden" src={profilePicUrl} alt="Profile"/>
+
                 <div className={`
                   flex flex-col items-start overflow-hidden
                   transition-all duration-300 ease-in-out
                   ${isMobile || isCollapsed ? "w-0 opacity-0" : "w-40 opacity-100"}
                 `}>
                   <p className="font-medium text-sm truncate w-fit">
-                    {authUser?.fullName || "Guest"} {/* Fallback for undefined */}
+                  {displayName} {/* Fallback for undefined */}
                   </p>
                   <p className="text-xs text-base-content/70 truncate w-fit">
                     {authUser?.email || "not provided"} {/* Fallback for undefined */}

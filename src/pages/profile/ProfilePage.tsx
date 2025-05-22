@@ -1,9 +1,13 @@
 import React from 'react';
-import { Button, Input, Image as HeroImage, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@heroui/react"; // Adjust imports as needed
 import { IconEdit, IconPhotoEdit, IconUserCircle, IconPhoto } from "@tabler/icons-react"; // Example icons
 import Cropper from 'react-easy-crop';
 import { useProfilePageLogic } from './ProfilePageLogic'; // Adjust path as needed
 import { useEffect } from 'react';
+
+//------- HeroUI -------
+import { PencilSquareIcon } from "@heroicons/react/24/solid";
+import { Button, Input, Image as HeroImage, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Avatar } from "@heroui/react"; // Adjust imports as needed
+
 
 const ProfilePage: React.FC = () => {
   const {
@@ -20,7 +24,7 @@ const ProfilePage: React.FC = () => {
     saveBanner, isUpdatingBanner,
   } = useProfilePageLogic();
 
-  const displayName = authUser?.user_metadata?.name || authUser?.user_metadata?.fullName || authUser?.email?.split('@')[0] || "User";
+  const displayName = authUser?.user_metadata?.name || authUser?.user_metadata?.display_name || authUser?.email?.split('@')[0] || "User";
   const profilePicUrl = authUser?.user_metadata?.profilePic || undefined; // Let HeroImage handle undefined with a fallback or style it
   const bannerUrl = authUser?.user_metadata?.bannerUrl || "/default-banner.jpg"; // Provide a default banner path
 
@@ -32,49 +36,40 @@ const ProfilePage: React.FC = () => {
   
   return (
     
-    <div className="container mx-auto p-4 space-y-8">
+    <div className="container h-full p-4 space-y-8 bg-base-100 overflow-scroll">
       {/* Banner Section */}
       <div className="relative group rounded-lg overflow-hidden">
+        <div 
+          className='absolute w-full h-full flex items-center justify-center bg-base-content/60 z-50 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer'
+          onClick={openBannerModal}
+          aria-label="Edit avatar"
+          >
+              <PencilSquareIcon className="w-8 h-8 text-base-100" />
+          </div>
         <HeroImage
           src={bannerUrl}
           alt="Banner"
-          className="w-full h-48 md:h-64 object-cover"
+          className="w-full aspect-[2.77/1]"
           fallbackSrc="/default-banner.jpg" // Ensure HeroImage has a fallback or handle it
         />
-        <Button
-          variant="flat"
-          color="primary"
-          className="absolute top-4 right-4 bg-black bg-opacity-50 text-white group-hover:bg-opacity-75"
-          onPress={openBannerModal}
-          aria-label="Edit banner"
-        >
-          <IconPhotoEdit size={24} />
-        </Button>
       </div>
 
       {/* Profile Info Section */}
       <div className="flex flex-col items-center md:flex-row md:items-end -mt-16 md:-mt-24 px-4 space-x-0 md:space-x-6">
         <div className="relative group">
-          {profilePicUrl ? (
-            <HeroImage
+          <div 
+          className='absolute w-full h-full flex items-center justify-center bg-base-content/60 border-4 border-base-100 z-50 backdrop-blur-sm rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer'
+          onClick={openAvatarModal}
+          aria-label="Edit avatar"
+          >
+              <PencilSquareIcon className="w-8 h-8 text-base-100" />
+          </div>
+            <Avatar
               src={profilePicUrl}
               alt="Profile"
-              className="w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-white shadow-lg object-cover"
+              className="w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-base-100 shadow-lg object-cover z-6"
             />
-          ) : (
-            <div className="w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-white shadow-lg bg-gray-200 flex items-center justify-center">
-              <IconUserCircle size={64} className="text-gray-400" />
-            </div>
-          )}
-          <Button
-            variant="flat"
-            color="primary"
-            className="absolute bottom-1 right-1 md:bottom-2 md:right-2 bg-black bg-opacity-50 text-white rounded-full p-2 group-hover:bg-opacity-75"
-            onPress={openAvatarModal}
-            aria-label="Edit avatar"
-          >
-            <IconEdit size={20} />
-          </Button>
+           
         </div>
         <div className="mt-4 md:mt-0 md:pb-4 text-center md:text-left">
           <h1 className="text-2xl md:text-4xl font-bold">{displayName}</h1>

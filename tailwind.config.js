@@ -10,6 +10,9 @@ module.exports = {
   darkMode: "class", // Enables dark mode support
   theme: {
     extend: {
+      aspectRasio: {
+        'banner': '1.85 / 1',
+      },
       colors: {
         // Expanded brand color palette 
         // Usage: bg-brand-500, text-brand-700 etc.
@@ -37,7 +40,7 @@ module.exports = {
             "base-100": "#FFFFFF",    
             "base-200": "#F5F5F5",
             "base-300": "#E5E5E5",    
-            "base-content": "#1F2937",
+            "base-100": "#0A0A0A",
           }
         },
         dark: {

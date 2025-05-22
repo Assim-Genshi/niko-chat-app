@@ -17,11 +17,17 @@ const SignupPage = () => {
     email: "",
     password: "",
   });
+  const [loading, setLoading] = useState(false); // Loading state
   const navigate = useNavigate(); // Use react-router-dom's navigate
 
   const handleSubmit = async (e: { preventDefault: () => void; }) => {
     e.preventDefault();
-    await signUp(formData.name, formData.email, formData.password, navigate); // Pass navigate for redirection
+    setLoading(true); // Start loading
+    try {
+      await signUp(formData.name, formData.email, formData.password, navigate);
+    } finally {
+      setLoading(false); // Stop loading
+    }
   };
 
   const handleGoogleSignup = () => {
@@ -60,7 +66,7 @@ const SignupPage = () => {
               placeholder="Enter your full name"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="h-14 w-full pl-3 pr-3 py-2 border border-base-300 rounded-2xl focus:outline-none focus:ring-brand-500 focus:border-brand-500 transition-colors duration-300 ease-in-out"
+              className="h-14 w-full pl-3 pr-3 bg-base-300 py-2 border border-base-300 rounded-2xl focus:outline-none focus:ring-brand-500 focus:border-brand-500 transition-colors duration-300 ease-in-out"
             />
 
             {/* Email Input */}
@@ -70,7 +76,7 @@ const SignupPage = () => {
               placeholder="Enter your email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className=" h-14 w-full pl-3 pr-3 py-2 border border-base-300 rounded-2xl focus:outline-none focus:ring-brand-500 focus:border-brand-500 transition-colors duration-300 ease-in-out"
+              className=" h-14 w-full pl-3 bg-base-300 pr-3 py-2 border border-base-300 rounded-2xl focus:outline-none focus:ring-brand-500 focus:border-brand-500 transition-colors duration-300 ease-in-out"
             />
 
             {/* Password Input */}
@@ -79,7 +85,7 @@ const SignupPage = () => {
                 <input
                   type={showPassword ? "text" : "password"}
                   required
-                  className="input input-bordered h-14 w-full pl-3 pr-3 py-2 border border-base-300 rounded-2xl focus:outline-none focus:ring-brand-500 focus:border-brand-500 transition-colors duration-300 ease-in-out"
+                  className="input input-bordered bg-base-300 h-14 w-full pl-3 pr-3 py-2 border border-base-300 rounded-2xl focus:outline-none focus:ring-brand-500 focus:border-brand-500 transition-colors duration-300 ease-in-out"
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -102,6 +108,7 @@ const SignupPage = () => {
             {/* Sign Up Button */}
             <Button
               type="submit"
+              isLoading={loading}
               className="btn w-full h-14 bg-brand-600 shadow-inner shadow-brand-500 text-white border-none rounded-2xl py-2.5 text-base font-semibold mt-4 "
             >
               Sign Up
@@ -131,12 +138,12 @@ const SignupPage = () => {
           <div className="text-center text-sm">
             <p className="text-base-content/60">
               Already have an account?{" "}
-              
               <Link 
-                className="text-brand-color font-semibold hover:text-brand-500"
+                className="cursor-pointer text-brand-color font-semibold hover:text-brand-500"
                 showAnchorIcon 
-                href="/login">
-                 Login
+                onPress={() => navigate('/login')}
+                >
+                Login
               </Link>
             </p>
           </div>
@@ -148,10 +155,11 @@ const SignupPage = () => {
 
       {/* Right Side - Image */}
       <div className="hidden lg:block w-full relative bg-base-100 rounded-3xl">
-        <Image
-          alt="Themed banner"
-          src="/white-log.jpg"
-          className="absolute inset-0 w-full h-full object-cover rounded-3xl"
+        <ThemedImage
+          lightSrc="/whitelogin.jpg"
+          darkSrc="/blacklogin.jpg"
+          alt="Themed image"
+          className="absolute w-full h-full object-cover rounded-3xl z-5"
         />
         <div className="absolute bottom-4 right-4 text-xs text-gray-200 bg-black/20 px-1 rounded">V1.0</div>
       </div>

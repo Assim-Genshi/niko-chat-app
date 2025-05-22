@@ -1,4 +1,3 @@
-import { Image } from "@heroui/react";
 import { useThemeStore } from "../lib/useThemeStore";
 
 interface ThemedImageProps {
@@ -23,7 +22,7 @@ export function ThemedImage({
   const src = theme === 'dark' ? darkSrc : lightSrc;
 
   return (
-    <Image
+    <img
       src={src}
       alt={alt}
       width={width}
