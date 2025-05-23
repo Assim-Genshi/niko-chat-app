@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input } from "@heroui/react";
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input, NumberInput, Switch } from "@heroui/react";
 import { useThemeStore } from "../lib/useThemeStore";
 import { useSoundSettingsStore } from "../lib/useSoundSettingsStore";
 import { IconMoon, IconSun } from "@tabler/icons-react";
@@ -17,7 +17,6 @@ const SettingsPage = ({ isOpen, onClose }: SettingsProps) => {
     setTypingSoundEnabled,
     setTypingSoundDelay,
   } = useSoundSettingsStore();
-  const [useCustomToggle, setUseCustomToggle] = useState(true);
 
   return (
     <Modal isOpen={isOpen} onOpenChange={onClose}>
@@ -54,42 +53,31 @@ const SettingsPage = ({ isOpen, onClose }: SettingsProps) => {
                 </div>
               </div>
 
-              {/* Toggle Style */}
-              <div className="w-full">
-                <h3 className="text-base font-medium text-zinc-600">Toggle Style</h3>
-                <div className="flex items-center justify-between mt-2">
-                  <span className="text-zinc-700">Use Custom Toggle</span>
-                  <Input type="checkbox" checked={useCustomToggle} onChange={(e) => setUseCustomToggle(e.target.checked)} />
-                </div>
-              </div>
-
               {/* Typing Sounds */}
               <div className="w-full">
                 <h3 className="text-base font-medium text-zinc-600">Typing Sounds</h3>
                 <div className="flex flex-col gap-3 mt-2">
                   <div className="flex items-center justify-between">
                     <span className="text-zinc-700">Enable Typing Sounds</span>
-                    <Input type="checkbox" checked={typingSoundEnabled} onChange={(e) => setTypingSoundEnabled(e.target.checked)} />
+                    <Switch checked={typingSoundEnabled} onChange={(e) => setTypingSoundEnabled(e.target.checked)} />
                   </div>
                   
-                  <div className="flex items-center gap-2">
+                  <div className="flex w-full items-center justify-between gap-2">
                     <span className="text-zinc-700">Sound Interval (ms)</span>
-                    <Input
-                      type="number"
-                      // value={typingSoundDelay}
-                      onChange={(e) => setTypingSoundDelay(Number(e.target.value))}
-                      className="w-24"
+                    <NumberInput
+                      size="sm"
+                      className="max-w-36" 
+                      min={0}
+                      max={10000}
+                      // onChange={(e) => setTypingSoundDelay(Number(e.target.value))}
+                      value={typingSoundDelay}
+                      placeholder="Enter the amount"
                     />
+                    
                   </div>
                 </div>
               </div>
             </ModalBody>
-
-            <ModalFooter>
-              <Button variant="light" color="danger" onPress={handleClose}>
-                Close
-              </Button>
-            </ModalFooter>
           </>
         )}
       </ModalContent>

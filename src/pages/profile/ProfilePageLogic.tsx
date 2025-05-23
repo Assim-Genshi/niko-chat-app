@@ -167,7 +167,7 @@ export const useProfilePageLogic = () => {
         console.error(`Failed to save ${imageType}:`, error); // Log the full error
         addToast({ title: "Update Failed", description: `Error: ${(error as Error).message}`, color: "danger" });
       } finally {
-        setIsUpdating(false); // This is correctly placed
+        setIsUpdating(false); // This is correctly placed 
       }
     };
 

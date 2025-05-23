@@ -1,23 +1,31 @@
-import React from 'react';
-import { IconEdit, IconPhotoEdit, IconUserCircle, IconPhoto } from "@tabler/icons-react"; // Example icons
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import Cropper from 'react-easy-crop';
-import { useProfilePageLogic } from './ProfilePageLogic'; // Adjust path as needed
-import { useEffect } from 'react';
+import { useProfilePageLogic } from './ProfilePageLogic';
 
-//------- HeroUI -------
-import { PencilSquareIcon } from "@heroicons/react/24/solid";
-import { Button, Input, Image as HeroImage, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Avatar } from "@heroui/react"; // Adjust imports as needed
-
+import {
+  PencilSquareIcon,
+  CloudArrowUpIcon
+} from "@heroicons/react/24/solid";
+import {
+  Button,
+  Input,
+  Image as HeroImage,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Avatar
+} from "@heroui/react";
 
 const ProfilePage: React.FC = () => {
   const {
     authUser,
-    // Avatar
     isAvatarModalOpen, openAvatarModal, closeAvatarModal,
     avatarSrcForCropper, avatarCrop, setAvatarCrop, avatarZoom, setAvatarZoom,
     avatarRotation, setAvatarRotation, onAvatarCropComplete, handleAvatarFileSelect,
     saveAvatar, isUpdatingAvatar,
-    // Banner
+
     isBannerModalOpen, openBannerModal, closeBannerModal,
     bannerSrcForCropper, bannerCrop, setBannerCrop, bannerZoom, setBannerZoom,
     bannerRotation, setBannerRotation, onBannerCropComplete, handleBannerFileSelect,
@@ -25,52 +33,85 @@ const ProfilePage: React.FC = () => {
   } = useProfilePageLogic();
 
   const displayName = authUser?.user_metadata?.name || authUser?.user_metadata?.display_name || authUser?.email?.split('@')[0] || "User";
-  const profilePicUrl = authUser?.user_metadata?.profilePic || undefined; // Let HeroImage handle undefined with a fallback or style it
-  const bannerUrl = authUser?.user_metadata?.bannerUrl || "/default-banner.jpg"; // Provide a default banner path
+  const profilePicUrl = authUser?.user_metadata?.profilePic || undefined;
+  const bannerUrl = authUser?.user_metadata?.bannerUrl || "/default-banner.jpg";
 
   useEffect(() => {
     console.log("authUser updated in ProfilePage:", authUser);
-    console.log("New profile pic URL from authUser:", authUser?.user_metadata?.profilePic);
-    console.log("New banner URL from authUser:", authUser?.user_metadata?.bannerUrl);
   }, [authUser]);
-  
+
+  // Common drag & drop logic
+  const useFileDrop = (onFileSelect: (e: React.ChangeEvent<HTMLInputElement>) => void) => {
+    const inputRef = useRef<HTMLInputElement>(null);
+    const [isDragging, setIsDragging] = useState(false);
+
+    const handleClick = () => inputRef.current?.click();
+    const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      setIsDragging(false);
+      const file = e.dataTransfer.files?.[0];
+      if (file) {
+        const syntheticEvent = {
+          target: { files: [file] }
+        } as unknown as React.ChangeEvent<HTMLInputElement>;
+        onFileSelect(syntheticEvent);
+      }
+    }, [onFileSelect]);
+
+    return {
+      inputRef,
+      isDragging,
+      handleClick,
+      handleDrop,
+      handleDragOver: (e: React.DragEvent) => { e.preventDefault(); setIsDragging(true); },
+      handleDragLeave: () => setIsDragging(false),
+    };
+  };
+
+  const avatarUpload = useFileDrop(handleAvatarFileSelect);
+  const bannerUpload = useFileDrop(handleBannerFileSelect);
+
   return (
-    
     <div className="container h-full p-4 space-y-8 bg-base-100 overflow-scroll">
-      {/* Banner Section */}
-      <div className="relative group rounded-lg overflow-hidden">
-        <div 
-          className='absolute w-full h-full flex items-center justify-center bg-base-content/60 z-50 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer'
+      <div className="relative">
+        <div className='w-full aspect-[3/1]'></div>
+        <div className='w-full h-16 md:h-24'></div>
+
+        {/* Banner Edit Button Overlay */}
+        <div
+          className='absolute insert-0 flex top-1 w-full aspect-[3/1] items-center justify-center rounded-2xl bg-base-content/60 z-20 backdrop-blur-sm opacity-0 hover:opacity-100 transition-opacity cursor-pointer'
           onClick={openBannerModal}
-          aria-label="Edit avatar"
-          >
-              <PencilSquareIcon className="w-8 h-8 text-base-100" />
-          </div>
-        <HeroImage
+          aria-label="Edit banner"
+        >
+          <PencilSquareIcon className="w-8 h-8 text-base-100" />
+        </div>
+
+        {/* Banner Image */}
+        <img
           src={bannerUrl}
           alt="Banner"
-          className="w-full aspect-[2.77/1]"
-          fallbackSrc="/default-banner.jpg" // Ensure HeroImage has a fallback or handle it
+          className="absolute insert-0 top-1 w-full aspect-[3/1] object-cover rounded-2xl z-10"
         />
+
+        {/* Profile Picture */}
+        <div className="absolute bottom-0 w-fit group">
+          <div
+            className='absolute w-32 h-32 md:w-48 md:h-48 flex items-center justify-center bg-base-content/60 border-4 border-base-100 z-40 backdrop-blur-sm rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer'
+            onClick={openAvatarModal}
+            aria-label="Edit avatar"
+          >
+            <PencilSquareIcon className="w-8 h-8 text-base-100" />
+          </div>
+          <Avatar
+            src={profilePicUrl}
+            alt="Profile"
+            className="w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-base-100 shadow-lg object-cover z-30"
+          />
+        </div>
       </div>
 
-      {/* Profile Info Section */}
+      {/* User Info */}
       <div className="flex flex-col items-center md:flex-row md:items-end -mt-16 md:-mt-24 px-4 space-x-0 md:space-x-6">
-        <div className="relative group">
-          <div 
-          className='absolute w-full h-full flex items-center justify-center bg-base-content/60 border-4 border-base-100 z-50 backdrop-blur-sm rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer'
-          onClick={openAvatarModal}
-          aria-label="Edit avatar"
-          >
-              <PencilSquareIcon className="w-8 h-8 text-base-100" />
-          </div>
-            <Avatar
-              src={profilePicUrl}
-              alt="Profile"
-              className="w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-base-100 shadow-lg object-cover z-6"
-            />
-           
-        </div>
         <div className="mt-4 md:mt-0 md:pb-4 text-center md:text-left">
           <h1 className="text-2xl md:text-4xl font-bold">{displayName}</h1>
           <p className="text-md text-gray-600">{authUser?.email}</p>
@@ -80,89 +121,177 @@ const ProfilePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Other profile content can go here, e.g., bio, stats, etc. */}
+      {/* About Section */}
       <div className="pt-8 border-t">
-          <h2 className="text-xl font-semibold">About</h2>
-          <p className="text-gray-700 mt-2">
-              This is where additional profile information like a biography or other details would go.
-              You can customize this section further based on your application's needs.
-          </p>
+        <h2 className="text-xl font-semibold">About</h2>
+        <p className="text-gray-700 mt-2">
+          This is where additional profile information like a biography or other details would go.
+        </p>
       </div>
 
-
-      {/* Avatar Editing Modal */}
-      <Modal isOpen={isAvatarModalOpen} onOpenChange={closeAvatarModal}>
+      {/* Avatar Modal */}
+      <Modal 
+      isOpen={isAvatarModalOpen} 
+      onOpenChange={closeAvatarModal}
+      classNames={{
+        header: "border-b-[1px] border-base-content/10 text-sm",
+        closeButton: "top-2",
+      }}
+      >
         <ModalContent>
-          {(modalCtrl) => (
-            <>
-              <ModalHeader>Edit Profile Picture</ModalHeader>
-              <ModalBody className="space-y-4">
-                <Input type="file" accept="image/*" onChange={handleAvatarFileSelect} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"/>
-                {avatarSrcForCropper && (
-                  <div className="relative w-full h-64 md:h-80 bg-gray-100 rounded">
-                    <Cropper
-                      image={avatarSrcForCropper}
-                      crop={avatarCrop}
-                      zoom={avatarZoom}
-                      rotation={avatarRotation}
-                      aspect={1}
-                      cropShape="round"
-                      onCropChange={setAvatarCrop}
-                      onZoomChange={setAvatarZoom}
-                      onRotationChange={setAvatarRotation}
-                      onCropComplete={onAvatarCropComplete}
-                    />
-                  </div>
-                )}
-
-              </ModalBody>
+          <>
+            <ModalHeader>
+              Edit Profile Picture
+              </ModalHeader>
+            <ModalBody className="space-y-4">
+              {/* Drop zone */}
+              <div
+                onClick={avatarUpload.handleClick}
+                onDrop={avatarUpload.handleDrop}
+                onDragOver={avatarUpload.handleDragOver}
+                onDragLeave={avatarUpload.handleDragLeave}
+                className={`flex flex-col items-center justify-center border-2 border-dashed rounded-lg text-center gap-1 p-6 cursor-pointer transition-all my-3 ${
+                  avatarUpload.isDragging ? 'border-primary-500 bg-primary-50' : 'border-base-content/20 bg-base-200'
+                }`}
+              >
+                <CloudArrowUpIcon className='w-8 h-8 text-base-content'/>
+                <p className="text-md text-base-content">
+                  {avatarUpload.isDragging ? "Drop image here..." : "Choose a file or drag & drop it here"}
+                </p>
+                <p className="text-sm text-base-content/60 mb-4">
+                  PNG, JPG, GIF up to 2MB
+                </p>
+                <Button 
+                size="sm" 
+                radius="sm" 
+                color="default" 
+                variant="faded" 
+                onPress={avatarUpload.handleClick}
+                className={`transition-all ${
+                  avatarUpload.isDragging ? 'opacity-0' : 'opacity-100'
+                }`}
+                >
+                  Browse files
+                </Button>
+              </div>
+              <input
+                ref={avatarUpload.inputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarFileSelect}
+                className="hidden"
+              />
+              {avatarSrcForCropper && (
+                <div className="relative w-full h-64 md:h-80 bg-base-300 rounded-lg overflow-hidden">
+                  <Cropper
+                    image={avatarSrcForCropper}
+                    crop={avatarCrop}
+                    zoom={avatarZoom}
+                    rotation={avatarRotation}
+                    aspect={1}
+                    cropShape="round"
+                    onCropChange={setAvatarCrop}
+                    onZoomChange={setAvatarZoom}
+                    onRotationChange={setAvatarRotation}
+                    onCropComplete={onAvatarCropComplete}
+                  />
+                </div>
+              )}
+            </ModalBody>
+            {avatarSrcForCropper && (
               <ModalFooter>
-               {/*<Button variant="light" color="primary" onPress={() => modalCtrl.close()}>Cancel</Button>*/}
-                <Button color="primary" onPress={saveAvatar} disabled={isUpdatingAvatar || !avatarSrcForCropper}>
-                  {isUpdatingAvatar ? "Saving..." : "Save Avatar"}
+                <Button 
+                  onPress={saveAvatar} 
+                  isLoading={isUpdatingAvatar} 
+                  className='bg-base-content text-base-100'
+                >
+                  Save Avatar
                 </Button>
               </ModalFooter>
-            </>
-          )}
+            )}
+          </>
         </ModalContent>
       </Modal>
 
-      {/* Banner Editing Modal */}
-      <Modal isOpen={isBannerModalOpen} onOpenChange={closeBannerModal}>
+      {/* Banner Modal */}
+      <Modal 
+      isOpen={isBannerModalOpen} 
+      onOpenChange={closeBannerModal}
+      classNames={{
+        header: "border-b-[1px] border-base-content/10 text-sm",
+        closeButton: "top-2",
+      }}
+      >
         <ModalContent>
-           {(modalCtrl) => (
-            <>
-              <ModalHeader>Edit Banner Image</ModalHeader>
-              <ModalBody className="space-y-4">
-                <Input type="file" accept="image/*" onChange={handleBannerFileSelect} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"/>
-                {bannerSrcForCropper && (
-                  <div className="relative w-full h-64 md:h-80 bg-gray-100 rounded">
-                    <Cropper
-                      image={bannerSrcForCropper}
-                      crop={bannerCrop}
-                      zoom={bannerZoom}
-                      rotation={bannerRotation}
-                      aspect={16 / 6} // Common banner aspect ratio, adjust as needed
-                      onCropChange={setBannerCrop}
-                      onZoomChange={setBannerZoom}
-                      onRotationChange={setBannerRotation}
-                      onCropComplete={onBannerCropComplete}
-                    />
-                  </div>
-                )}
-                 
-              </ModalBody>
+          <>
+            <ModalHeader>Edit Banner Image</ModalHeader>
+            <ModalBody className="space-y-4">
+              <div
+                onClick={bannerUpload.handleClick}
+                onDrop={bannerUpload.handleDrop}
+                onDragOver={bannerUpload.handleDragOver}
+                onDragLeave={bannerUpload.handleDragLeave}
+                className={`flex flex-col items-center justify-center border-2 border-dashed rounded-lg text-center gap-1 p-6 cursor-pointer transition-all my-3 ${
+                  avatarUpload.isDragging ? 'border-primary-500 bg-primary-50' : 'border-base-content/20 bg-base-200'
+                }`}
+              >
+                <CloudArrowUpIcon className='w-8 h-8 text-base-content'/>
+                <p className="text-md text-base-content">
+                  {avatarUpload.isDragging ? "Drop image here..." : "Choose a file or drag & drop it here"}
+                </p>
+                <p className="text-sm text-base-content/60 mb-4">
+                  PNG, JPG, GIF up to 2MB
+                </p>
+                <Button 
+                size="sm" 
+                radius="sm" 
+                color="default" 
+                variant="faded" 
+                onPress={bannerUpload.handleClick}
+                className={`transition-all ${
+                  avatarUpload.isDragging ? 'opacity-0' : 'opacity-100'
+                }`}
+                >
+                  Browse files
+                </Button>
+              </div>
+              <input
+                ref={bannerUpload.inputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleBannerFileSelect}
+                className="hidden"
+              />
+              {bannerSrcForCropper && (
+                <div className="relative w-full h-64 md:h-80 bg-base-300 rounded-lg overflow-hidden">
+                  <Cropper
+                    image={bannerSrcForCropper}
+                    crop={bannerCrop}
+                    zoom={bannerZoom}
+                    rotation={bannerRotation}
+                    aspect={16 / 6}
+                    onCropChange={setBannerCrop}
+                    onZoomChange={setBannerZoom}
+                    onRotationChange={setBannerRotation}
+                    onCropComplete={onBannerCropComplete}
+                  />
+                </div>
+              )}
+            </ModalBody>
+            {bannerSrcForCropper && (
               <ModalFooter>
-                {/*<Button variant="light" color="primary" onPress={() => modalCtrl.close()}>Cancel</Button> */}
-                <Button color="primary" onPress={saveBanner} disabled={isUpdatingBanner || !bannerSrcForCropper}>
-                  {isUpdatingBanner ? "Saving..." : "Save Banner"}
+                <Button 
+                  onPress={saveBanner} 
+                  isLoading={isUpdatingBanner} 
+                  className='bg-base-content text-base-100'
+                >
+                  Save Banner
                 </Button>
               </ModalFooter>
-            </>
-           )}
+            )}
+          </>
         </ModalContent>
       </Modal>
-
     </div>
   );
 };

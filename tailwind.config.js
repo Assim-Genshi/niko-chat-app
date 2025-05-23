@@ -40,7 +40,7 @@ module.exports = {
             "base-100": "#FFFFFF",    
             "base-200": "#F5F5F5",
             "base-300": "#E5E5E5",    
-            "base-100": "#0A0A0A",
+            "base-content": "#0A0A0A",
           }
         },
         dark: {
