@@ -1,8 +1,7 @@
-import { useState } from "react";
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input, NumberInput, Switch } from "@heroui/react";
+import { Modal, ModalContent, ModalHeader, ModalBody, Switch, NumberInput } from "@heroui/react";
 import { useThemeStore } from "../lib/useThemeStore";
 import { useSoundSettingsStore } from "../lib/useSoundSettingsStore";
-import { IconMoon, IconSun } from "@tabler/icons-react";
+import { Image } from "@heroui/react";
 
 interface SettingsProps {
   isOpen: boolean;
@@ -21,65 +20,86 @@ const SettingsPage = ({ isOpen, onClose }: SettingsProps) => {
   return (
     <Modal isOpen={isOpen} onOpenChange={onClose}>
       <ModalContent>
-        {(handleClose) => (
-          <>
-            <ModalHeader className="flex flex-col items-start gap-1">
-              <h2 className="text-sm font-semibold text-zinc-400">Settings</h2>
-              <p className="text-xs text-zinc-500">Customize your experience</p>
-            </ModalHeader>
+        <>
+          <ModalHeader className="flex flex-col items-start gap-1">
+            <h2 className="text-sm font-semibold text-zinc-400">Settings</h2>
+            <p className="text-xs text-zinc-500">Customize your experience</p>
+          </ModalHeader>
 
-            <ModalBody className="space-y-6 w-full">
-              {/* Theme Switcher */}
-              <div className="w-full">
-                <h3 className="text-base font-medium text-zinc-600">Theme Switcher</h3>
-                <div className="flex items-center gap-4 mt-2">
-                  <Button
-                    variant="light"
-                    color={theme === "light" ? "primary" : "secondary"}
-                    onPress={() => setTheme("light")}
-                    className="flex items-center gap-2"
-                  >
-                    <IconSun className="h-4 w-4" /> Light Mode
-                  </Button>
-                  
-                  <Button
-                    variant="light"
-                    color={theme === "dark" ? "primary" : "secondary"}
-                    onPress={() => setTheme("dark")}
-                    className="flex items-center gap-2"
-                  >
-                    <IconMoon className="h-4 w-4" /> Dark Mode
-                  </Button>
+          <ModalBody className="space-y-6 w-full">
+
+            {/* Theme Switcher */}
+            <div className="w-full">
+              <h3 className="text-base font-medium text-zinc-600 mb-2">Theme</h3>
+              <div className="flex justify-center items-center gap-4">
+                {/* Light Theme */}
+                <div
+                  className={`relative cursor-pointer rounded-xl p-1 transition-all ${
+                    theme === "light" ? "ring-2 ring-primary-500" : "ring-1 ring-zinc-300"
+                  }`}
+                  onClick={() => setTheme("light")}
+                >
+                  <Image
+                    src="/themes/light.png"
+                    alt="Light Theme"
+                    width={120}
+                    height={80}
+                    className="rounded-lg"
+                  />
+                  <span className="block text-center text-sm mt-1 text-zinc-600">Light</span>
+                </div>
+
+                {/* Dark Theme */}
+                <div
+                  className={`relative cursor-pointer rounded-xl p-1 transition-all ${
+                    theme === "dark" ? "ring-2 ring-primary-500" : "ring-1 ring-zinc-300"
+                  }`}
+                  onClick={() => setTheme("dark")}
+                >
+                  <Image
+                    src="/themes/dark.png"
+                    alt="Dark Theme"
+                    width={120}
+                    height={80}
+                    className="rounded-lg"
+                  />
+                  <span className="block text-center text-sm mt-1 text-zinc-600">Dark</span>
                 </div>
               </div>
+            </div>
 
-              {/* Typing Sounds */}
-              <div className="w-full">
-                <h3 className="text-base font-medium text-zinc-600">Typing Sounds</h3>
-                <div className="flex flex-col gap-3 mt-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-zinc-700">Enable Typing Sounds</span>
-                    <Switch checked={typingSoundEnabled} onChange={(e) => setTypingSoundEnabled(e.target.checked)} />
-                  </div>
-                  
-                  <div className="flex w-full items-center justify-between gap-2">
-                    <span className="text-zinc-700">Sound Interval (ms)</span>
-                    <NumberInput
-                      size="sm"
-                      className="max-w-36" 
-                      min={0}
-                      max={10000}
-                      // onChange={(e) => setTypingSoundDelay(Number(e.target.value))}
-                      value={typingSoundDelay}
-                      placeholder="Enter the amount"
-                    />
-                    
-                  </div>
+            {/* Typing Sounds */}
+            <div className="w-full">
+              <h3 className="text-base font-medium text-zinc-600 mb-2">Typing Sounds</h3>
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-zinc-700">Enable Typing Sounds</span>
+                  <Switch
+                    checked={typingSoundEnabled}
+                    onChange={(e) => setTypingSoundEnabled(e.target.checked)}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-zinc-700">Sound Interval (ms)</span>
+                  <NumberInput
+                    size="sm"
+                    className="max-w-36 p-1"
+                    min={0}
+                    max={10000}
+                    value={typingSoundDelay}
+                    onChange={(value) => {
+                      if (typeof value === "number") {
+                        setTypingSoundDelay(value);
+                      }
+                    }}
+                    placeholder="Enter delay"
+                  />
                 </div>
               </div>
-            </ModalBody>
-          </>
-        )}
+            </div>
+          </ModalBody>
+        </>
       </ModalContent>
     </Modal>
   );

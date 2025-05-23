@@ -17,18 +17,10 @@ import { addToast,
   Avatar
   } from '@heroui/react';
   import { ArrowRightStartOnRectangleIcon, UserIcon, ChevronDoubleLeftIcon, ChatBubbleOvalLeftIcon, BellIcon, Cog6ToothIcon  } from "@heroicons/react/24/solid";
-    
-  
-    
-interface AuthUser {
-  fullName?: string;
-  email?: string;
-  profilePic?: string;
-  
-}
+
 
 const Navbar = () => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const { session } = useAuth(); // Get Supabase session
   const { authUser } = useProfilePageLogic(); // Type-cast Supabase user
@@ -37,8 +29,7 @@ const Navbar = () => {
   
 
   const displayName = authUser?.user_metadata?.name || authUser?.user_metadata?.display_name || authUser?.email?.split('@')[0] || "User";
-    const profilePicUrl = authUser?.user_metadata?.profilePic || undefined; // Let HeroImage handle undefined with a fallback or style it
-    const bannerUrl = authUser?.user_metadata?.bannerUrl || "/default-banner.jpg"; // Provide a default banner path
+  const profilePicUrl = authUser?.user_metadata?.profilePic || undefined; // Let HeroImage handle undefined with a fallback or style it
 
 
   const handleLogout = async () => {

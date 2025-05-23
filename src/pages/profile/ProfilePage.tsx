@@ -9,13 +9,17 @@ import {
 import {
   Button,
   Input,
-  Image as HeroImage,
+  Image,
   Modal,
   ModalContent,
   ModalHeader,
   ModalBody,
   ModalFooter,
-  Avatar
+  Avatar, 
+  Card, 
+  CardHeader, 
+  CardBody, 
+  CardFooter
 } from "@heroui/react";
 
 const ProfilePage: React.FC = () => {
@@ -33,8 +37,8 @@ const ProfilePage: React.FC = () => {
   } = useProfilePageLogic();
 
   const displayName = authUser?.user_metadata?.name || authUser?.user_metadata?.display_name || authUser?.email?.split('@')[0] || "User";
-  const profilePicUrl = authUser?.user_metadata?.profilePic || undefined;
-  const bannerUrl = authUser?.user_metadata?.bannerUrl || "/default-banner.jpg";
+  const profilePicUrl = authUser?.user_metadata?.profilePic || "/profile/default-avatar.jpg";
+  const bannerUrl = authUser?.user_metadata?.bannerUrl || "/profile/default-banner.jpg";
 
   useEffect(() => {
     console.log("authUser updated in ProfilePage:", authUser);
@@ -72,61 +76,78 @@ const ProfilePage: React.FC = () => {
   const bannerUpload = useFileDrop(handleBannerFileSelect);
 
   return (
-    <div className="container h-full p-4 space-y-8 bg-base-100 overflow-scroll">
+    <div className="container h-full p-4 space-y-4 bg-base-100 overflow-scroll">
       <div className="relative">
         <div className='w-full aspect-[3/1]'></div>
         <div className='w-full h-16 md:h-24'></div>
 
         {/* Banner Edit Button Overlay */}
         <div
-          className='absolute insert-0 flex top-1 w-full aspect-[3/1] items-center justify-center rounded-2xl bg-base-content/60 z-20 backdrop-blur-sm opacity-0 hover:opacity-100 transition-opacity cursor-pointer'
+          className='absolute insert-0 flex top-1 w-full aspect-[3/1] items-center justify-center rounded-2xl bg-base-100/60 z-20 backdrop-blur-sm opacity-0 hover:opacity-100 transition-opacity cursor-pointer'
           onClick={openBannerModal}
           aria-label="Edit banner"
         >
-          <PencilSquareIcon className="w-8 h-8 text-base-100" />
+          <PencilSquareIcon className="w-8 h-8 text-base-content" />
         </div>
 
         {/* Banner Image */}
-        <img
+        <div className='absolute insert-0 top-1 w-full aspect-[3/1]'>
+          <Image
           src={bannerUrl}
           alt="Banner"
-          className="absolute insert-0 top-1 w-full aspect-[3/1] object-cover rounded-2xl z-10"
+          className="w-full h-full aspect-[3/1] object-cover rounded-2xl z-10"
         />
+        </div>
+        
 
         {/* Profile Picture */}
-        <div className="absolute bottom-0 w-fit group">
+        <div className="absolute left-4 bottom-0 w-fit group">
           <div
-            className='absolute w-32 h-32 md:w-48 md:h-48 flex items-center justify-center bg-base-content/60 border-4 border-base-100 z-40 backdrop-blur-sm rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer'
+            className='absolute w-32 h-32 md:w-48 md:h-48 flex items-center justify-center bg-base-100/60 border-8 border-base-100 z-40 backdrop-blur-sm rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer'
             onClick={openAvatarModal}
             aria-label="Edit avatar"
           >
-            <PencilSquareIcon className="w-8 h-8 text-base-100" />
+            <PencilSquareIcon className="w-8 h-8 text-base-content" />
           </div>
           <Avatar
             src={profilePicUrl}
             alt="Profile"
-            className="w-32 h-32 md:w-48 md:h-48 rounded-full border-4 border-base-100 shadow-lg object-cover z-30"
+            className="w-32 h-32 md:w-48 md:h-48 rounded-full border-8 border-base-100 object-cover z-30"
           />
         </div>
       </div>
 
       {/* User Info */}
-      <div className="flex flex-col items-center md:flex-row md:items-end -mt-16 md:-mt-24 px-4 space-x-0 md:space-x-6">
-        <div className="mt-4 md:mt-0 md:pb-4 text-center md:text-left">
-          <h1 className="text-2xl md:text-4xl font-bold">{displayName}</h1>
-          <p className="text-md text-gray-600">{authUser?.email}</p>
-          <p className="text-sm text-gray-500 mt-1">
-            Member since: {authUser?.created_at ? new Date(authUser.created_at).toLocaleDateString() : "N/A"}
-          </p>
+        <div className="">
+          <h1 className="text-2xl text-base-content md:text-4xl font-bold capitalize">{displayName}</h1>
+          <p className="text-sm text-base-content/60">CatLover#1</p>
+          
         </div>
-      </div>
 
       {/* About Section */}
-      <div className="pt-8 border-t">
-        <h2 className="text-xl font-semibold">About</h2>
-        <p className="text-gray-700 mt-2">
-          This is where additional profile information like a biography or other details would go.
-        </p>
+      <div className="flex flex-col space-y-4">
+        
+        <Card>
+          <CardBody className='gap-2'>
+            <p className="text-md font-medium">About</p>
+            <p className='mb-2'>
+            This is where additional profile information like a biography or other details would go.
+            </p>
+            <p className="text-md font-medium">Member Since</p>
+            <p>
+            {authUser?.created_at ? new Date(authUser.created_at).toLocaleDateString() : "N/A"}
+            </p>
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardBody>
+            <p className="text-md font-medium">Email</p>            
+            <p>
+              {authUser?.email}
+            </p>
+          </CardBody>
+        </Card>
       </div>
 
       {/* Avatar Modal */}
