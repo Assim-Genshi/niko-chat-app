@@ -1,3 +1,4 @@
+// src/pages/SettingsPage.tsx
 import { Modal, ModalContent, ModalHeader, ModalBody, Switch, NumberInput } from "@heroui/react";
 import { useThemeStore } from "../lib/useThemeStore";
 import { useSoundSettingsStore } from "../lib/useSoundSettingsStore";
@@ -64,6 +65,23 @@ const SettingsPage = ({ isOpen, onClose }: SettingsProps) => {
                     className="rounded-lg"
                   />
                   <span className="block text-center text-sm mt-1 text-zinc-600">Dark</span>
+                </div>
+
+                {/* Vibrant Theme */}
+                <div
+                  className={`relative cursor-pointer rounded-xl p-1 transition-all ${
+                    theme === "vibrant" ? "ring-2 ring-primary-500" : "ring-1 ring-zinc-300"
+                  }`}
+                  onClick={() => setTheme("vibrant")}
+                >
+                  <Image
+                    src="/themes/vibrant.png"
+                    alt="Vibrant Theme"
+                    width={120}
+                    height={80}
+                    className="rounded-lg"
+                  />
+                  <span className="block text-center text-sm mt-1 text-zinc-600">Vibrant</span>
                 </div>
               </div>
             </div>

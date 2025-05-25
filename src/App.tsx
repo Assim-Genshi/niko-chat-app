@@ -2,10 +2,12 @@
 import {
   BrowserRouter as Router,
   Routes,
-  Route
+  Route,
+  Navigate,
 } from "react-router-dom";
+import { useAuth } from "./contexts/AuthContext";
 
-// --------- Pages ----------
+// Pages
 import Homepge from "./pages/homepage";
 import SignUp from "./components/SignUp";
 import Login from "./components/Login";
@@ -14,23 +16,37 @@ import DefaultLayout from "./defaultLayout";
 import ProfilePage from "./pages/profile/ProfilePage";
 
 function App() {
-  return (
-    <Route>
-        {/* no h-nav */}
-            <Route path="/" element={<Homepge />} />
-            <Route path="signup" element={<SignUp />} />
-            <Route path="login" element={<Login />} />
+  const { session } = useAuth(); // Get auth session from context
 
-        {/* h-nav */}
-        <Route element={<DefaultLayout />}>
-            <Route path="chat" element={<Chat />} />
-            <Route path="profile" element={<ProfilePage />} />
+  return (
+    <Router>
+      <Routes>
+        {/* Public Routes (available to everyone) */}
+        <Route path="/" element={<Homepge />} />
+        
+        {/* Login/Signup Routes with Auth Check */}
+        <Route
+          path="login"
+          element={session ? <Navigate to="/chat" /> : <Login />} // Redirect if authenticated
+        />
+        <Route
+          path="signup"
+          element={session ? <Navigate to="/chat" /> : <SignUp />} // Redirect if authenticated
+        />
+
+        {/* Protected Routes (require authentication) */}
+        <Route
+          element={session ? <DefaultLayout /> : <Navigate to="/login" />} // Redirect to login if not authenticated
+        >
+          <Route path="chat" element={<Chat />} />
+          <Route path="profile" element={<ProfilePage />} />
         </Route>
-    </Route>
+
+        {/* Catch-all for unknown routes */}
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
+    </Router>
   );
 }
 
 export default App;
-
-
-

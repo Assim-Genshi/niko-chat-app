@@ -12,6 +12,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { cn } from '../lib/utils';
 import User from './user';
 
+
 const menuItems = [
   { name: 'Features', href: '#features' },
   { name: 'Solution', href: '#solution' },
@@ -42,7 +43,7 @@ export const HeroHeader = () => {
           <div className="relative flex flex-wrap items-center justify-between py-3 lg:py-4">
             
             {/* Logo + Mobile menu toggle */}
-            <div className="flex w-full justify-between lg:w-auto">
+            <div className="flex w-full justify-between items-center lg:w-auto">
               <Link href="/" aria-label="home" className="flex items-center space-x-2">
                 <Logo />
               </Link>
@@ -51,12 +52,12 @@ export const HeroHeader = () => {
                 onPress={toggleMenu}
                 isIconOnly
                 aria-label={menuOpen ? 'Close Menu' : 'Open Menu'}
-                className="relative z-20 block lg:hidden"
+                className="relative z-20 block lg:hidden bg-transparent"
               >
                 {!menuOpen ? (
-                  <Bars2Icon className="size-6" />
+                  <Bars2Icon className="" />
                 ) : (
-                  <XMarkIcon className="size-6" />
+                  <XMarkIcon className="" />
                 )}
               </Button>
             </div>
@@ -103,20 +104,17 @@ export const HeroHeader = () => {
                 <ThemeToggle />
                 {!session ? (
                   <>
-                    <Button variant="bordered" size="md" onPress={() => navigate('/login')}>
+                    <Button className='border-base-content' variant="ghost" size="md" onPress={() => navigate('/login')}>
                       Login
                     </Button>
-                    <Button size="md" onPress={() => navigate('/signup')}>
+                    <Button className='bg-base-content text-base-100' size="md" onPress={() => navigate('/signup')}>
                       Sign up
                     </Button>
                   </>
                 ) : (
                   <>
                     {/* Replace with your actual User component */}
-                    <div className="flex items-center gap-2">
-                    <Button size="md" onPress={() => navigate('/chat')}>
-                      Get Started
-                    </Button>  
+                    <div className="flex items-center gap-2"> 
                       <User />
                     </div>
                     

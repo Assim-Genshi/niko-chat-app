@@ -60,12 +60,11 @@ const User = () => {
           />
         </DropdownTrigger>
         <DropdownMenu>
-        <DropdownItem key="profile" className="h-14 gap-2">
+        <DropdownItem onPress={() => navigate('/profile')} key="profile" className="h-14 gap-2">
             <p className="font-semibold text-base-content">Signed in as</p>
             <p className="font-semibold text-base-content">{authUser?.email || "not provided"}</p>
           </DropdownItem>
-          <DropdownItem startContent={<ArrowRightStartOnRectangleIcon className="size-6"/>} className="text-danger" color="danger" onPress={handleLogout} key="new">Logout</DropdownItem>
-
+          <DropdownItem startContent={<ArrowRightStartOnRectangleIcon className="size-6"/>} className="text-danger" color="danger" onPress={handleLogout} key="logout">Logout</DropdownItem>
 
         </DropdownMenu>
       </Dropdown>

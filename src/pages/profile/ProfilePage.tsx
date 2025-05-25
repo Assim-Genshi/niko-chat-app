@@ -76,7 +76,7 @@ const ProfilePage: React.FC = () => {
   const bannerUpload = useFileDrop(handleBannerFileSelect);
 
   return (
-    <div className="container h-full p-4 space-y-4 bg-base-100 overflow-scroll">
+    <div className="container h-full max-w-4xl p-4 space-y-4 bg-base-100 overflow-scroll">
       <div className="relative">
         <div className='w-full aspect-[3/1]'></div>
         <div className='w-full h-16 md:h-24'></div>
