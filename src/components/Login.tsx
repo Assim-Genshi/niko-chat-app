@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { addToast } from "@heroui/react";
 import { login } from "../utils/auth"; // Use your auth utility
 import Logo from "./Logo"; // Adjust path if needed
-import { ThemeToggle } from "./ThemeSwitcher";
 import { IconBrandGoogleFilled } from '@tabler/icons-react';
 
 //------- HeroUI --------
@@ -40,9 +39,9 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-2 bg-black p-2 gap-1">
+    <div className="min-h-screen grid lg:grid-cols-2 bg-black p-0 sm:p-2 gap-1">
       {/* Left Side - Form */}
-      <div className="flex flex-col w-full justify-center items-center p-6 sm:p-12 bg-gradient-to-b from-base-100 to-base-200 rounded-3xl">
+      <div className="flex flex-col justify-center items-center p-6 sm:p-12 bg-gradient-to-b from-base-100 to-base-200 rounded-t-2xl sm:rounded-3xl">
         <div className="w-full max-w-sm space-y-6">
           {/* Logo and Title */}
           <div className="flex flex-col text-center items-center gap-6">
@@ -127,8 +126,6 @@ const LoginPage = () => {
               Continue with Google
             </Button>
           </div>
-            {/* Theme Toggle */}
-            <ThemeToggle className="absolute bottom-4 left-4" />
           {/* Signup Link */}
           <div className="text-center text-sm">
             <p className="text-base-content/60">

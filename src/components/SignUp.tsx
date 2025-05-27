@@ -4,6 +4,7 @@ import { addToast } from "@heroui/react";
 import { signUp } from "../utils/auth"; // Use your auth utility
 import Logo from "./Logo"; // Adjust path if needed
 import { ThemeToggle } from "./ThemeSwitcher";
+import { IconBrandGoogleFilled } from '@tabler/icons-react';
 
 //----heroUI----
 import { EyeIcon, EyeSlashIcon, GlobeAltIcon } from "@heroicons/react/24/solid";
@@ -40,9 +41,9 @@ const SignupPage = () => {
   };
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-2 bg-black p-2 gap-1">
+    <div className="min-h-screen grid lg:grid-cols-2 bg-black p-0 sm:p-2 gap-1">
       {/* Left Side - Form */}
-      <div className="flex flex-col justify-center items-center p-6 sm:p-12 bg-gradient-to-b from-base-100 to-base-200 rounded-3xl">
+      <div className="flex flex-col justify-center items-center p-6 sm:p-12 bg-gradient-to-b from-base-100 to-base-200 rounded-t-2xl sm:rounded-3xl">
         <div className="w-full max-w-sm space-y-6">
           {/* Logo and Title */}
           <div className="flex flex-col text-center items-center gap-6">
@@ -124,11 +125,12 @@ const SignupPage = () => {
 
           {/* Alternative Logins */}
           <div className="space-y-3">
-            <Button
-              startContent={<GlobeAltIcon className="h-5 w-5 mr-2" />}
+          <Button
+              startContent={<IconBrandGoogleFilled />}
               type="button"
               onPress={handleGoogleSignup}
               className="bg-base-content h-14 btn btn-outline border-base-300 w-full flex items-center justify-center rounded-2xl py-2.5 text-sm font-semibold text-base-100"
+              disabled={loading} // ← Disable during loading
             >
               Continue with Google
             </Button>

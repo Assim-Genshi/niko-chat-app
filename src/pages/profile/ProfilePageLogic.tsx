@@ -107,7 +107,6 @@ export const useProfilePageLogic = () => {
   }, []);
 
   const genericSaveImage = async (
-    
     imageType: 'avatar' | 'banner',
     srcForCropper: string | null,
     croppedAreaPixelsToUse: Area | null,
@@ -126,39 +125,48 @@ export const useProfilePageLogic = () => {
 
     setIsUpdating(true);
     try {
-      const blob = await createImageBlob(srcForCropper, croppedAreaPixelsToUse, rotationToUse);
-      const filePath = `${authUser.id}/${imageType}.jpg`;
+      const blob = await createImageBlob(srcForCropper!, croppedAreaPixelsToUse!, rotationToUse);
+      const isAvatar = imageType === 'avatar';
+      const bucket = isAvatar ? 'avatars' : 'banners';
+      const filePath = `${authUser!.id}/${imageType}.jpg`; // authUser is checked above
 
       const { error: uploadError } = await supabase.storage
-        .from(imageType === 'avatar' ? 'avatars' : 'banners') // Assuming separate buckets or handled by policies
+        .from(bucket)
         .upload(filePath, blob, { upsert: true });
-
       if (uploadError) throw uploadError;
 
       const { data: publicUrlData } = supabase.storage
-        .from(imageType === 'avatar' ? 'avatars' : 'banners')
-        .getPublicUrl(filePath);
+      .from(bucket)
+      .getPublicUrl(filePath);
+    if (!publicUrlData || !publicUrlData.publicUrl) {
+      throw new Error(`Could not get public URL for the ${imageType}.`);
+    }
+    const newImageUrl = `${publicUrlData.publicUrl}?t=${new Date().getTime()}`;
 
-      if (!publicUrlData || !publicUrlData.publicUrl) {
-        throw new Error(`Could not get public URL for the ${imageType}.`);
+    const metadataField = isAvatar ? 'profilePic' : 'bannerUrl';
+    const { error: updateAuthError } = await supabase.auth.updateUser({
+      data: {
+        ...(authUser!.user_metadata || {}),
+        [metadataField]: newImageUrl,
+      },
+    });
+    if (updateAuthError) throw updateAuthError;
+
+    if (isAvatar) { // Only update profiles.avatar_url if it's an avatar
+      const { error: updateProfileError } = await supabase
+          .from('profiles')
+          .update({ avatar_url: newImageUrl })
+          .eq('id', authUser!.id); // Match the user ID
+
+      if (updateProfileError) {
+          // Log or show a warning, but maybe don't fail the whole process
+          console.warn("Failed to update profiles table:", updateProfileError);
+          addToast({ title: "Profile Sync Warning", description: "Avatar updated, but profile sync had an issue.", color: "warning" });
       }
-      const newImageUrl = `${publicUrlData.publicUrl}?t=${new Date().getTime()}`; // Cache buster
+  }
+  // *** END OF ADDED STEP ***
 
-      const metadataField = imageType === 'avatar' ? 'profilePic' : 'bannerUrl';
-      const { error: updateError } = await supabase.auth.updateUser({
-        data: {
-          ...(authUser.user_metadata || {}),
-          [metadataField]: newImageUrl,
-        },
-      });
-
-      if (updateError) {
-        console.error("Error updating user metadata:", updateError);
-        throw updateError;
-      }
-
-      addToast({ title: `${imageType.charAt(0).toUpperCase() + imageType.slice(1)} Updated`, description: `Your ${imageType} has been successfully updated.`, color: "success" });
-      console.log("Calling refreshSession after user metadata update...");
+      addToast({ title: `${imageType.charAt(0).toUpperCase() + imageType.slice(1)} Updated`, description: `Your ${imageType} has been successfully updated.`, color: "success" });      console.log("Calling refreshSession after user metadata update...");
        if (typeof refreshSession === 'function') {
          await refreshSession(); // Refresh session to get new metadata
       }

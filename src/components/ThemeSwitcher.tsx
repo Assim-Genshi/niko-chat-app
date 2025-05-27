@@ -1,4 +1,4 @@
-// src/components/ThemeSwitcher.tsx
+// src/components/ThemeToggle.tsx
 import { useThemeStore } from '../lib/useThemeStore'
 import { Button } from "@heroui/react";
 import { MoonIcon, SunIcon } from "@heroicons/react/16/solid";

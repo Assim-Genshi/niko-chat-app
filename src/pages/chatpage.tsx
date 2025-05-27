@@ -1,9 +1,10 @@
-import Navbar from "../components/h-nav";
-import ProfilePage from "./profile/ProfilePage";
+
+import { ChatLayout } from "../features/chat/ChatLayout";
 
 const Chat = () => {
     return (
-      <div className="flex flex-row max-h-screen min-h-screen bg-base-100">
+      <div className="flex w-full h-[100%] flex-row bg-base-100">
+        <ChatLayout/>
       </div>
     );
   };

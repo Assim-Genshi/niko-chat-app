@@ -1,10 +1,13 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import Cropper from 'react-easy-crop';
 import { useProfilePageLogic } from './ProfilePageLogic';
+import { useNavigate } from "react-router-dom";
+
 
 import {
   PencilSquareIcon,
-  CloudArrowUpIcon
+  CloudArrowUpIcon,
+  Cog6ToothIcon
 } from "@heroicons/react/24/solid";
 import {
   Button,
@@ -23,6 +26,7 @@ import {
 } from "@heroui/react";
 
 const ProfilePage: React.FC = () => {
+  const navigate = useNavigate();
   const {
     authUser,
     isAvatarModalOpen, openAvatarModal, closeAvatarModal,
@@ -76,7 +80,12 @@ const ProfilePage: React.FC = () => {
   const bannerUpload = useFileDrop(handleBannerFileSelect);
 
   return (
-    <div className="container h-full max-w-4xl p-4 space-y-4 bg-base-100 overflow-scroll">
+    <div className="container h-full max-w-2xl p-4 space-y-4 bg-base-100 overflow-scroll">
+      <div className='w-full justify-between flex items-center space-x-4'>
+        <Button variant="ghost" color='warning' isIconOnly onPress={() => navigate('/settings')}>
+          <Cog6ToothIcon className='w-6 h-6'/>
+        </Button>
+      </div>
       <div className="relative">
         <div className='w-full aspect-[3/1]'></div>
         <div className='w-full h-16 md:h-24'></div>

@@ -1,13 +1,10 @@
 import React from 'react'
-import { ArrowRight, ChevronRight } from 'lucide-react'
-//import { Button } from './ui/button'
+import { ArrowRight } from 'lucide-react'
 import { TextEffect } from './ui/text-effect'
 import { AnimatedGroup } from './ui/animated-group'
 import { HeroHeader } from './header'
 import { Link, Image, Button } from '@heroui/react';
 import { useNavigate } from "react-router-dom";
-
-import { IconBrandAppleFilled, IconBrandFacebook, IconBrandInstagram, IconBrandTwitter, IconBrandYoutube } from '@tabler/icons-react';
 
 const transitionVariants = {
     item: {
@@ -71,8 +68,8 @@ export default function HeroSection() {
                                 },
                             }}
                             className="absolute inset-0 -z-20">
-                            <Image
-                                src="https://ik.imagekit.io/lrigu76hy/tailark/night-background.jpg?updatedAt=1745733451120"
+                            <img
+                                src="/night-background.jpg"
                                 alt="background"
                                 className="absolute inset-x-0 top-56 -z-20 hidden lg:top-32 dark:block"
                                 width="3276"
@@ -169,18 +166,18 @@ export default function HeroSection() {
                                     aria-hidden
                                     className="bg-linear-to-b to-background absolute inset-0 z-10 from-transparent from-35%"
                                 />
-                                <div className="inset-shadow-2xs ring-background dark:inset-shadow-white/20 bg-background relative mx-auto max-w-6xl overflow-hidden rounded-2xl border p-4 shadow-lg shadow-zinc-950/15 ring-1">
-                                    <Image
+                                <div className="inset-shadow-2xs ring-background dark:inset-shadow-white/20 bg-background relative mx-auto max-w-6xl overflow-hidden rounded-2xl border shadow-lg shadow-zinc-950/15 ring-1">
+                                    <img
                                         className="bg-background aspect-15/8 relative hidden rounded-2xl dark:block"
-                                        src="/landimg.jpg"
-                                        alt="app screen"
+                                        src="/mail2-light.png"
+                                        alt="dark app screen"
                                         width="2700"
                                         height="1440"
                                     />
-                                    <Image
+                                    <img
                                         className="z-2 border-border/25 aspect-15/8 relative rounded-2xl border dark:hidden"
-                                        src="/landimg.jpg"
-                                        alt="app screen"
+                                        src="/mail2.png"
+                                        alt="light app screen"
                                         width="2700"
                                         height="1440"
                                     />
@@ -189,25 +186,7 @@ export default function HeroSection() {
                         </AnimatedGroup>
                     </div>
                 </section>
-                <section className="bg-background pb-16 pt-16 md:pb-32">
-                    <div className="group relative m-auto max-w-5xl px-6">
-                        <div className="absolute inset-0 z-10 flex scale-95 items-center justify-center opacity-0 duration-500 group-hover:scale-100 group-hover:opacity-100">
-                            <Link
-                                href="/"
-                                className="block text-sm duration-150 hover:opacity-75">
-                                <span> Meet Our Customers</span>
 
-                                <ChevronRight className="ml-1 inline-block size-3" />
-                            </Link>
-                        </div>
-                        <div className="group-hover:blur-xs mx-auto mt-12 grid max-w-2xl grid-cols-4 gap-x-12 gap-y-8 transition-all duration-500 group-hover:opacity-50 sm:gap-x-16 sm:gap-y-14">
-                            <div>
-                                <IconBrandAppleFilled/>
-                            </div>
-                            
-                        </div>
-                    </div>
-                </section>
             </main>
         </>
     )

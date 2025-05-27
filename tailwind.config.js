@@ -96,15 +96,6 @@ module.exports = {
             "base-content": "#EAEAEA", // off-white
           }
         },
-        vibrant: {
-          layout: {},
-          colors: {
-            "base-100": "#FFE5B4",    
-            "base-200": "#FFD700",
-            "base-300": "#FFA500",    
-            "base-content": "#00008B",
-          }
-        },
         // Add custom themes here
       }
     }),
