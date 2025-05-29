@@ -21,7 +21,7 @@ export function ThemeToggle({ className = '' }: ThemeToggleProps) {
   return (
     <Button
       isIconOnly
-      variant='flat'
+      variant='solid'
       aria-label='Switch Theme'
       title='Switch Theme'
       onPress={toggleTheme}
@@ -29,13 +29,13 @@ export function ThemeToggle({ className = '' }: ThemeToggleProps) {
     >
       <div className="relative w-8 h-8">
         <SunIcon
-          className={`absolute inset-0 h-8 w-8 transition-all duration-500 ${
-            theme === 'light' ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
+          className={`absolute inset-0 h-8 w-8 transition-all duration-300 text-zinc-800 ${
+            theme === 'light' ? 'opacity-100 scale-100 blur-0' : 'opacity-0 scale-150 blur-md'
           }`}
         />
         <MoonIcon
-          className={`absolute inset-0 h-8 w-8 transition-all duration-500 ${
-            theme === 'dark' ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
+          className={`absolute inset-0 h-8 w-8 transition-all duration-300 text-white ${
+            theme === 'dark' ? 'opacity-100 scale-100 blur-0' : 'opacity-0 scale-80 blur-md'
           }`}
         />
       </div>

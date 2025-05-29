@@ -24,6 +24,7 @@ import {
   CardBody, 
   CardFooter
 } from "@heroui/react";
+import { ThemeToggle } from '../../components/ThemeSwitcher';
 
 const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
@@ -82,6 +83,7 @@ const ProfilePage: React.FC = () => {
   return (
     <div className="container h-full max-w-2xl p-4 space-y-4 bg-base-100 overflow-scroll">
       <div className='w-full justify-between flex items-center space-x-4'>
+        <ThemeToggle/>
         <Button variant="ghost" color='warning' isIconOnly onPress={() => navigate('/settings')}>
           <Cog6ToothIcon className='w-6 h-6'/>
         </Button>

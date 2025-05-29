@@ -14,17 +14,17 @@ const SettingsPage = () => {
   } = useSoundSettingsStore();
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="p-6 w-full max-w-4xl mx-auto">
       <header className="mb-6">
-        <h2 className="text-xl font-semibold text-zinc-800">Settings</h2>
-        <p className="text-sm text-zinc-500">Customize your experience</p>
+        <h2 className="text-xl font-semibold text-base-content">Settings</h2>
+        <p className="text-sm text-base-content/60">Customize your experience</p>
       </header>
 
       <div className="space-y-10">
 
         {/* Theme Switcher */}
         <section className="w-full">
-          <h3 className="text-base font-medium text-zinc-600 mb-2">Theme</h3>
+          <h3 className="text-base font-medium text-base-content mb-2">Themes</h3>
           <div className="flex justify-center items-center gap-4">
             {/* Light Theme */}
             <div onClick={() => setTheme("light")}>
@@ -56,18 +56,17 @@ const SettingsPage = () => {
 
         {/* Typing Sounds */}
         <section className="w-full">
-          <h3 className="text-base font-medium text-zinc-600 mb-2">Typing Sounds</h3>
+          <h3 className="text-base font-medium text-base-content mb-2">Typing Sounds</h3>
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
-              <span className="text-zinc-700">Enable Typing Sounds</span>
+              <span className="text-base-content">Enable Typing Sounds</span>
               <Switch
-                checked={typingSoundEnabled}
-                onChange={(e) => setTypingSoundEnabled(e.target.checked)}
+                isSelected={typingSoundEnabled} onValueChange={setTypingSoundEnabled}
               />
             </div>
 
             <div className="flex items-center justify-between gap-2">
-              <span className="text-zinc-700">Sound Interval (ms)</span>
+              <span className="text-base-content">Sound Interval (ms)</span>
               <NumberInput
                 size="sm"
                 radius="lg"

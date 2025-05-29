@@ -7,6 +7,9 @@ import {
 } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
 import { Spinner } from "@heroui/react"; // Import Spinner
+import { AuthProvider } from './contexts/AuthContext'; // Adjust path
+import { PresenceProvider } from './contexts/PresenceContext';
+import { ChatStateProvider } from './contexts/ChatStateContext'; // <--- Import
 
 // Layouts
 import DefaultLayout from "./defaultLayout";
@@ -39,6 +42,9 @@ function App() {
   }
 
   return (
+    <AuthProvider>
+    <PresenceProvider>
+    <ChatStateProvider>
     <Router>
       <Routes>
         {/* Public Routes */}
@@ -72,6 +78,9 @@ function App() {
         <Route path="*" element={<Navigate to="/" />} /> 
       </Routes>
     </Router>
+    </ChatStateProvider>
+    </PresenceProvider>
+    </AuthProvider>
   );
 }
 

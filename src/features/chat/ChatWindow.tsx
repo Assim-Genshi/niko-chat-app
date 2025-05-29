@@ -2,10 +2,10 @@ import React, { useState, useEffect, useRef, useCallback } from 'react'; // Adde
 import { useMessages } from './useMessages'; // Adjust path
 import { ConversationPreview } from './useConversations'; // Adjust path
 import { Button, Input, Avatar, Skeleton } from '@heroui/react'; // Removed Image, Spinner, as Avatar and Skeleton cover them
-import { IconSend, IconArrowDown } from '@tabler/icons-react';
 import { ArrowDownIcon, PaperAirplaneIcon } from '@heroicons/react/24/solid';
 import { useAuth } from '../../contexts/AuthContext'; // Adjust path
 import { useSoundSettingsStore } from '../../lib/useSoundSettingsStore'; // Your sound store path
+import { usePresence } from '../../contexts/PresenceContext';
 
 interface ChatWindowProps {
   conversation: ConversationPreview;
@@ -37,6 +37,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversation }) => {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+  const { onlineUsers } = usePresence();
 
   // --- Typing Sound Logic ---
   const { typingSoundEnabled, typingSoundDelay } = useSoundSettingsStore();
@@ -203,7 +204,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversation }) => {
           className="absolute bottom-20 right-6 z-20 rounded-full shadow-lg bg-base-100 hover:bg-base-200"
           aria-label="Scroll to bottom"
         >
-          <IconArrowDown size={20} />
+          <ArrowDownIcon className='w-4 h-4' />
         </Button>
       )}
 
@@ -216,24 +217,24 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversation }) => {
             onChange={handleInputChange} // Use the new handler
             onKeyDown={handleInputKeyDown} // Keep Enter key functionality separate
             fullWidth
-            size="lg"
+            size="md"
             className="flex-grow"
             autoComplete="off"
-            radius='lg'
+            radius='full'
           />
           <Button
             type="submit"
             isIconOnly
             color="primary"
-            size="lg"
+            size="md"
             variant="solid"
             isDisabled={!newMessage.trim() || loading}
             aria-label="Send message"
-            radius='lg'
+            radius='full'
             className="flex-shrink-0"
             isLoading={loading}
           >
-            <PaperAirplaneIcon className='w-6 h-6' />
+            <PaperAirplaneIcon className='w-5 h-5' />
           </Button>
         </form>
       </div>

@@ -112,7 +112,7 @@ const Navbar = () => {
     `}>
       <div onClick={() => navigate('/')} className="flex items-center gap-3 py-4 cursor-pointer overflow-hidden">
         <Logo className="w-11 h-11 shrink-0 text-base-content" />
-        <div className={`transition-all duration-300 ${isMobile || isCollapsed ? "opacity-0 w-0" : "opacity-100 w-auto"}`}>
+        <div className={`transition-all duration-300 ${isMobile || isCollapsed ? "opacity-0 w-0 blur-md" : "opacity-100 w-auto"}`}>
           <h1 className="text-lg text-base-content font-bold whitespace-nowrap">NikoChat</h1>
         </div>
       </div>
@@ -142,7 +142,7 @@ const Navbar = () => {
               <div className="flex items-center justify-center w-6 h-6 shrink-0"> {/* Ensure icon wrapper has fixed size */}
                 {icon}
               </div>
-              <span className={`transition-all duration-300 ${isMobile || isCollapsed ? "opacity-0 w-0" : "opacity-100 w-auto"} whitespace-nowrap`}>
+              <span className={`transition-all duration-300 ${isMobile || isCollapsed ? "opacity-0 w-0 blur-md" : "opacity-100 w-auto"} whitespace-nowrap`}>
                 {label}
               </span>
             </NavLink>
@@ -156,7 +156,7 @@ const Navbar = () => {
               <DropdownTrigger>
                 <div className={`flex items-center gap-3 p-2 bg-base-300 hover:bg-base-300/60 rounded-2xl transition-all duration-300 cursor-pointer ${isMobile || isCollapsed ? "justify-start p-1" : ""}`}>
                   <Avatar className="shrink-0 overflow-hidden" src={profilePicUrl} alt="Profile" />
-                  <div className={`flex flex-col items-start overflow-hidden transition-all duration-300 ${isMobile || isCollapsed ? "w-0 opacity-0" : "w-40 opacity-100"}`}>
+                  <div className={`flex flex-col items-start overflow-hidden transition-all duration-300 ${isMobile || isCollapsed ? "w-0 opacity-0 blur-md" : "w-40 opacity-100"}`}>
                     <p className="font-medium text-sm text-base-content truncate w-fit">{displayName}</p>
                     <p className="text-xs text-base-content/70 truncate w-fit">{authUser?.email || "not provided"}</p>
                   </div>

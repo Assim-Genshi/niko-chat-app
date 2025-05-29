@@ -1,17 +1,25 @@
+// src/app/providers.tsx
+import React from 'react';
+import { AuthProvider } from '../contexts/AuthContext';
+import { PresenceProvider } from '../contexts/PresenceContext';
+import { ChatStateProvider } from '../contexts/ChatStateContext';
 import { HeroUIProvider } from '@heroui/react';
 import { ToastProvider } from '@heroui/toast';
-import { AuthProvider } from '../contexts/AuthContext';
 
-// 显式指定 children 的类型为 ReactNode
+
 const Providers: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    return (
-        <HeroUIProvider>
-            <ToastProvider />
-            <AuthProvider>
-                {children}
-            </AuthProvider>
-        </HeroUIProvider>
-    );
+  return (
+    <HeroUIProvider>
+        <ToastProvider />
+    <AuthProvider>
+      <PresenceProvider>
+        <ChatStateProvider>
+          {children} {/* <--- Renders App */}
+        </ChatStateProvider>
+      </PresenceProvider>
+    </AuthProvider>
+    </HeroUIProvider>
+  );
 };
 
 export default Providers;

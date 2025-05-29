@@ -76,14 +76,14 @@ const MobileBottomNav = () => {
   const visibleNavItems = navItems.filter(item => !item.requiresAuth || session);
 
   return (
-    <nav className="fixed bottom-2 left-2 right-2 h-16 bg-base-200/80 backdrop-blur-md border border-base-300/50 flex items-center rounded-xl justify-around shadow-[0_5px_25px_-5px_rgba(0,0,0,0.15)] z-50 lg:hidden">
+    <nav className="fixed bottom-2 left-2 right-2 h-16 bg-base-200 backdrop-blur-md border-t-1 border-base-100 dark:border-white flex items-center rounded-xl justify-around shadow-[0_5px_25px_-5px_rgba(0,0,0,0.15)] z-50 lg:hidden">
       {visibleNavItems.map((item, index) => (
         <NavLink
           to={item.to}
           key={item.label || index}
           className={({ isActive }) =>
-            `flex flex-col items-center justify-center p-2 rounded-lg transition-colors duration-300 w-1/4 h-full
-             ${isActive ? "text-primary" : "text-base-content/70 hover:text-base-content"}` // Enhanced active/hover states
+            `flex flex-col items-center justify-center p-2 rounded-lg transition-all duration-300 w-1/4 h-full
+             ${isActive ? "text-base-content scale-110" : "text-base-content/60 hover:text-base-content"}` // Enhanced active/hover states
           }
         >
           <div className="flex items-center justify-center h-6"> {/* Ensure icon area has consistent height */}

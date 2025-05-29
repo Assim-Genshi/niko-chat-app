@@ -29,7 +29,7 @@ const NotificationsPage: React.FC = () => {
   );
 
   return (
-    <div className="flex flex-col w-full max-w-3xl bg-base-100 mx-auto p-4 sm:p-6 gap-4 rounded-2xl shadow-md my-4">
+    <div className="flex flex-col w-full max-w-3xl bg-base-100 mx-auto p-4 sm:p-6 gap-4">
       <h2 className="text-2xl font-bold text-base-content text-center mb-4">Notifications</h2>
 
       <h3 className="text-xl font-semibold mb-3 text-base-content/80">Friend Requests</h3>
