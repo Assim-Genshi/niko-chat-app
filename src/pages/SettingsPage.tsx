@@ -1,8 +1,10 @@
 // src/pages/SettingsPage.tsx
-import { Switch, NumberInput } from "@heroui/react";
+import { Switch, addToast, NumberInput, Button } from "@heroui/react";
 import { useThemeStore } from "../lib/useThemeStore";
 import { useSoundSettingsStore } from "../lib/useSoundSettingsStore";
 import { Image } from "@heroui/react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from '../supabase/supabaseClient';
 
 const SettingsPage = () => {
   const { theme, setTheme } = useThemeStore();
@@ -12,6 +14,26 @@ const SettingsPage = () => {
     setTypingSoundEnabled,
     setTypingSoundDelay,
   } = useSoundSettingsStore();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      addToast({
+        title: 'Logout Successful',
+        description: 'You have been logged out.',
+        color: 'success',
+      });
+      navigate('/login');
+    } catch (error: any) {
+      addToast({
+        title: 'Logout Failed',
+        description: `Error: ${error.message}`,
+        color: 'danger',
+      });
+    }
+  };
 
   return (
     <div className="p-6 w-full max-w-4xl mx-auto">
@@ -82,6 +104,7 @@ const SettingsPage = () => {
                 placeholder="Enter delay"
               />
             </div>
+            <Button onPress={handleLogout} className="w-full" color="danger">Logout</Button>
           </div>
         </section>
       </div>

@@ -41,7 +41,7 @@ export const ChatLayout: React.FC = () => {
         />
       </div>
 
-      <div className="flex-col w-full min-w-96 bg-base-100 hidden md:flex">
+      <div className="flex-col w-full min-w-96 bg-base-100 hidden sm:flex">
         {selectedConversation ? (
           <ChatWindow conversation={selectedConversation} />
         ) : (

@@ -2,8 +2,9 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import Cropper from 'react-easy-crop';
 import { useProfilePageLogic } from './ProfilePageLogic';
 import { useNavigate } from "react-router-dom";
+import clsx from 'clsx';
 
-
+import { IconCopy, IconCheck } from '@tabler/icons-react';
 import {
   PencilSquareIcon,
   CloudArrowUpIcon,
@@ -13,16 +14,17 @@ import {
   Button,
   Input,
   Image,
-  Modal,
+  Modal,Snippet,
   ModalContent,
   ModalHeader,
   ModalBody,
   ModalFooter,
   Avatar, 
   Card, 
-  CardHeader, 
+  CardHeader,
   CardBody, 
-  CardFooter
+  CardFooter,
+  Tooltip
 } from "@heroui/react";
 import { ThemeToggle } from '../../components/ThemeSwitcher';
 
@@ -78,7 +80,17 @@ const ProfilePage: React.FC = () => {
   };
 
   const avatarUpload = useFileDrop(handleAvatarFileSelect);
+  const [copied, setCopied] = useState(false);
   const bannerUpload = useFileDrop(handleBannerFileSelect);
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(displayName);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500); // Reset icon after 1.5s
+    } catch (err) {
+      console.error('Copy failed', err);
+    }
+  };
 
   return (
     <div className="container h-full max-w-2xl p-4 space-y-4 bg-base-100 overflow-scroll">
@@ -130,7 +142,30 @@ const ProfilePage: React.FC = () => {
 
       {/* User Info */}
         <div className="">
-          <h1 className="text-2xl text-base-content md:text-4xl font-bold capitalize">{displayName}</h1>
+        <Tooltip content="Click to copy">
+      <div
+        onClick={handleCopy}
+        className="flex w-fit flex-row items-center space-x-2 cursor-pointer smhover:opacity-70 transition-opacity"
+      >
+        <h1 className="text-2xl text-base-content md:text-4xl font-bold capitalize">{displayName}</h1>
+        <div className="relative w-5 h-5">
+          {/* Copy Icon */}
+          <IconCopy
+            className={clsx(
+              'absolute inset-0 transition-opacity duration-300',
+              copied ? 'opacity-0 scale-80 blur-md' : 'opacity-100 scale-100'
+            )}
+          />
+          {/* Check Icon */}
+          <IconCheck
+            className={clsx(
+              'absolute inset-0 transition-opacity duration-500',
+              copied ? 'opacity-100 scale-100' : 'opacity-0 scale-80 blur-md'
+            )}
+          />
+        </div>
+      </div>
+    </Tooltip>
           <p className="text-sm text-base-content/60">CatLover#1</p>
           
         </div>

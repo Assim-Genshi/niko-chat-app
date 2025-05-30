@@ -19,9 +19,9 @@ export default function DefaultLayout() {
 
   return (
     <>
-      <div className="flex flex-row w-full max-h-auto sm:min-h-screen sm:max-h-screen bg-base-200 overflow-hidden">
+      <div className="flex flex-row w-full max-h-auto md:min-h-screen md:max-h-screen bg-base-200 overflow-hidden">
         {!isMobileView && <Navbar />} {/* Desktop Sidebar */}
-        <div className="flex w-full justify-center bg-base-100 sm:border-base-300 sm:border rounded-none sm:rounded-2xl overflow-hidden sm:overflow-scroll my-0 mr-0 sm:my-2 sm:mr-2"> {/* Changed to flex-1 and flex-col for main area */}
+        <div className="flex w-full justify-center bg-base-100 md:border-base-300 md:border rounded-none md:rounded-2xl overflow-hidden md:overflow-scroll my-0 mr-0 md:my-2 md:mr-2"> {/* Changed to flex-1 and flex-col for main area */}
           <main className="flex justify-center w-full h-fit overflow-visible"> {/* Main content area with padding */}
             {/* Content will be rendered here by Outlet */}
             <Outlet />

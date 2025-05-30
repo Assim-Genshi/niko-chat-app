@@ -59,6 +59,8 @@ const Navbar = () => {
           shape="circle"
           size="sm"
           isInvisible={incomingCount === 0}
+          showOutline={false}
+          className="flex items-center justify-center"
         >
           <BellIcon className="w-6 h-6 shrink-0" />
         </Badge>

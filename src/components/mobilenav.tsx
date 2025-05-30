@@ -51,6 +51,7 @@ const MobileBottomNav = () => {
           size="sm" // Adjusted size for better fit
           isInvisible={incomingCount === 0}
           className="flex items-center justify-center" // For centering the icon within badge context
+          showOutline={false}
         >
           <BellIcon className="w-6 h-6 shrink-0" />
         </Badge>
