@@ -13,11 +13,11 @@ interface ChatWindowProps {
 
 const MessageSkeleton: React.FC<{ isOwnMessage?: boolean }> = ({ isOwnMessage }) => (
   <div className={`flex mb-4 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
-    <div className={`flex items-end max-w-xs md:max-w-md ${isOwnMessage ? 'flex-row-reverse' : ''}`}>
-      <Skeleton className="rounded-full flex-shrink-0">
-        <div className={`w-8 h-8 rounded-full bg-default-300 ${isOwnMessage ? 'ml-2' : 'mr-2'}`} />
+    <div className={`flex items-end space-x-2 max-w-xs md:max-w-md ${isOwnMessage ? 'flex-row-reverse' : ''}`}>
+      <Skeleton className="rounded-full w-fit h-fit flex-shrink-0">
+        <div className={`w-8 h-8 aspect-square rounded-full shrink-0 bg-default-300`} />
       </Skeleton>
-      <div className={`p-3 rounded-lg space-y-1.5 ${isOwnMessage ? 'bg-default-200' : 'bg-default-200'}`}>
+      <div className={`p-3 rounded-2xl space-y-1.5 ${isOwnMessage ? 'bg-default-200 rounded-br-sm' : 'rounded-bl-sm bg-default-200'}`}>
         <Skeleton className="w-32 rounded-lg">
           <div className="h-3 w-32 rounded-lg bg-default-300" />
         </Skeleton>

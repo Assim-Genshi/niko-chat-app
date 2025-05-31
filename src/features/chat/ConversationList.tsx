@@ -2,31 +2,32 @@ import React from 'react';
 import { useConversations, ConversationPreview } from './useConversations';
 import { usePresence } from '../../contexts/PresenceContext';
 import { Input, Skeleton, Card, Badge, Avatar, Button } from '@heroui/react';
-import { MagnifyingGlassIcon } from '@heroicons/react/24/solid'; // Removed useNavigate
+// No need for useNavigate here, the parent handles it via the prop
+import { MagnifyingGlassIcon } from '@heroicons/react/24/solid';
 
 interface ConversationListProps {
-  onSelectConversation: (conversation: ConversationPreview) => void;
+  onSelectConversation: (conversation: ConversationPreview) => void; // This will trigger navigation
   selectedConversationId?: number | null;
 }
 
 const ConversationItemSkeleton: React.FC = () => ( 
-<li className="p-1">
-  <Card shadow="none" className=" w-full bg-transparent hover:bg-base-200/50">
-      <div className="flex items-center">
-          <Skeleton className="rounded-full">
-              <div className="h-10 w-10 rounded-full bg-default-300" />
-          </Skeleton>
-          <div className="ml-3 space-y-2 flex-grow">
-              <Skeleton className="w-3/5 rounded-lg">
-                  <div className="h-3 w-3/5 rounded-lg bg-default-200" />
-              </Skeleton>
-              <Skeleton className="w-4/5 rounded-lg">
-                  <div className="h-3 w-4/5 rounded-lg bg-default-200" />
-              </Skeleton>
-          </div>
-      </div>
-  </Card>
-</li>
+  <li className="p-1">
+    <Card shadow="none" className=" w-full bg-transparent hover:bg-base-200/50">
+        <div className="flex items-center">
+            <Skeleton className="rounded-full">
+                <div className="h-10 w-10 rounded-full bg-default-300" />
+            </Skeleton>
+            <div className="ml-3 space-y-2 flex-grow">
+                <Skeleton className="w-3/5 rounded-lg">
+                    <div className="h-3 w-3/5 rounded-lg bg-default-200" />
+                </Skeleton>
+                <Skeleton className="w-4/5 rounded-lg">
+                    <div className="h-3 w-4/5 rounded-lg bg-default-200" />
+                </Skeleton>
+            </div>
+        </div>
+    </Card>
+  </li>
 );
 
 function formatMessageDate(dateString?: string): string {
@@ -48,11 +49,14 @@ function formatMessageDate(dateString?: string): string {
 export const ConversationList: React.FC<ConversationListProps> = ({ onSelectConversation, selectedConversationId }) => {
   const { conversations, loading, error } = useConversations();
   const { onlineUsers } = usePresence();
+  // We removed useNavigate, as the parent ChatLayout will handle navigation
+  // when onSelectConversation is called.
 
   return (
     <div className="w-full sm:border-r sm:border-base-300 p-2 h-full flex space-y-3 flex-col">
-      <h2 className="w-full text-2xl font-bold p-3 sticky top-0 z-10">Chats</h2>
-      <Input
+      {/* ... (Keep Header and Search/Filter UI) ... */}
+       <h2 className="w-full text-2xl font-bold p-3 sticky top-0 z-10">Chats</h2>
+       <Input
           size='sm'
           variant='flat'
           radius='full'
@@ -67,21 +71,25 @@ export const ConversationList: React.FC<ConversationListProps> = ({ onSelectConv
         <Button variant='flat' size='sm' radius='full' color='default' className='w-fit font-semibold' >groups</Button>
         <Button variant='flat' size='sm' radius='full' color='default' className='w-fit font-semibold' >unread</Button>
       </div>
+
       {error && <p className="text-danger-500 p-3 text-center">Error loading chats.</p>}
       {!error && (
         <div className="overflow-y-auto flex-grow">
-          {loading && ( <ul className='space-y-2 p-1 overflow-visible'>
-            {[...Array(5)].map((_, index) => (
-              <ConversationItemSkeleton key={index} />
-            ))}
-          </ul> )}
-          {!loading && conversations.length === 0 && ( <>
-          <div className='w-full flex flex-col items-center justify-center text-base-content p-6 text-center'>
-           <p>no one to chat with yet</p>
-          <Button onPress={() => onSelectConversation({} as ConversationPreview)}>invite friends</Button> 
-          </div>
-          
-          </> )}
+          {loading && (
+            <ul className='space-y-2 p-1 overflow-visible'>
+              {[...Array(5)].map((_, index) => (
+                <ConversationItemSkeleton key={index} />
+              ))}
+            </ul>
+          )}
+          {!loading && conversations.length === 0 && (
+            <>
+              <div className='w-full flex flex-col items-center justify-center text-base-content p-6 text-center'>
+                <p>no one to chat with yet</p>
+                <Button onPress={() => onSelectConversation({} as ConversationPreview)}>invite friends</Button> 
+              </div>
+            </>
+          )}
           {!loading && conversations.length > 0 && (
             <ul className="space-y-1">
               {conversations.map(convo => {
@@ -89,45 +97,45 @@ export const ConversationList: React.FC<ConversationListProps> = ({ onSelectConv
                 const isSelected = convo.conversation_id === selectedConversationId;
 
                 const avatarComponent = (
-                    <Avatar
-                        src={convo.display_avatar || '/avatar.png'}
-                        alt={convo.display_name || 'Chat'}
-                        size="md"
-                    />
+                  <Avatar
+                    src={convo.display_avatar || '/avatar.png'}
+                    alt={convo.display_name || 'Chat'}
+                    size="md"
+                  />
                 );
 
                 return (
                   <li
                     key={convo.conversation_id}
-                    className={`rounded-lg transition-colors duration-150 ease-in-out ${isSelected ? 'bg-primary-50 dark:bg-primary-900/30' : 'hover:bg-base-200/50 dark:hover:bg-base-700/50'}`}
-                    onClick={() => onSelectConversation(convo)}
+                    className={`rounded-lg transition-colors duration-150 ease-in-out`}
+                    onClick={() => onSelectConversation(convo)} // <--- Just call the prop
                   >
-                    <Card shadow='none' radius='lg' className={`w-full p-2 cursor-pointer  ${isSelected ? 'border border-base-300 bg-base-200' : 'bg-transparnt'}`}>
+                    {/* ... (Keep Card and inner layout) ... */}
+                    <Card shadow='none' radius='lg' className={`w-full p-2 cursor-pointer border border-opacity-0 border-base-300 ${isSelected ? 'border border-opacity-100 bg-base-200' : 'bg-transparnt'}`}>
                       <div className="flex items-center space-x-3 w-full min-w-0">
-                          <div className="flex-shrink-0 w-10 h-10">
-                             <Badge
-                                content=""
-                                color="success"
-                                shape="circle"
-                                placement="bottom-right"
-                                isInvisible={!isDmAndOtherUserOnline}
-                                className={`border-2  ${isSelected ? 'border-base-200' : 'border-base-100'}`}
-                              >
-                                {avatarComponent}
-                             </Badge>
-                          </div>
-                          <div className="flex-grow gap-0 min-w-0">
-                              <p className={`font-semibold text-md truncate `}>
-                                  {convo.display_name || 'Chat'}
-                              </p>
-
-                              <p className={`text-sm truncate`}>
-                                  {'last message: ' + convo.latest_message_content || 'No messages yet...'}
-                              </p>
-                          </div>
-                          <p className='text-xs text-base-content/40 self-start'>
-                            {formatMessageDate(convo.latest_message_created_at || '')}
+                        <div className="flex-shrink-0 w-10 h-10">
+                          <Badge
+                            content=""
+                            color="success"
+                            shape="circle"
+                            placement="bottom-right"
+                            isInvisible={!isDmAndOtherUserOnline}
+                            className={`border-2  ${isSelected ? 'border-base-200' : 'border-base-100'}`}
+                          >
+                            {avatarComponent}
+                          </Badge>
+                        </div>
+                        <div className="flex-grow gap-0 min-w-0">
+                          <p className={`font-semibold text-md truncate `}>
+                            {convo.display_name || 'Chat'}
                           </p>
+                          <p className={`text-sm truncate`}>
+                            {'last: ' + convo.latest_message_content || 'No messages yet...'}
+                          </p>
+                        </div>
+                        <p className='text-xs text-base-content/40 self-start'>
+                          {formatMessageDate(convo.latest_message_created_at || '')}
+                        </p>
                       </div>
                     </Card>
                   </li>

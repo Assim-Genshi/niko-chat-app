@@ -3,25 +3,27 @@ import { useFriends, Profile } from './useFriends'; // Your existing hook
 import { useConversations, ConversationPreview } from '../chat/useConversations'; // Adjust path
 import { usePresence } from '../../contexts/PresenceContext'; // Adjust path to your PresenceContext
 import { Button, Input, Card, Spinner, Avatar, Tabs, Tab, Chip } from '@heroui/react';
-import { UserPlusIcon, MagnifyingGlassIcon, ChatBubbleLeftEllipsisIcon } from '@heroicons/react/24/solid'; // Added Chat icon
+import { UserPlusIcon, MagnifyingGlassIcon, ChatBubbleOvalLeftIcon } from '@heroicons/react/24/solid'; // Added Chat icon
+import { useNavigate } from 'react-router-dom'; // <--- Import useNavigate
 
 const FriendsPage: React.FC = () => {
   const {
     friends,
     outgoingRequests,
-    loading: friendsLoading, // Renamed to avoid conflict
-    error: friendsError,     // Renamed
+    loading: friendsLoading,
+    error: friendsError,
     searchUsers,
     sendRequest,
   } = useFriends();
 
-  const { conversations, loading: conversationsLoading } = useConversations(); // For finding chat IDs
+  const { conversations, loading: conversationsLoading } = useConversations();
   const { onlineUsers } = usePresence();
+  const navigate = useNavigate(); // <--- Use navigate hook
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Profile[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [activeTab, setActiveTab] = useState<string | number>("add"); // Default to "add" tab
+  const [activeTab, setActiveTab] = useState<string | number>("add");
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,33 +42,17 @@ const FriendsPage: React.FC = () => {
 
   const handleMessageFriend = (friend: Profile) => {
     if (conversationsLoading) {
-        console.log("Conversations still loading, please wait.");
-        // Optionally show a toast
+        alert("Conversations loading...");
         return;
     }
-    // Find the DM conversation with this friend
-    // Note: other_participant_id in ConversationPreview is the ID of the *other* user in the DM
     const dmConversation = conversations.find(
         (convo) => !convo.is_group && convo.other_participant_id === friend.id
     );
 
     if (dmConversation) {
-        console.log(`Opening chat with ${friend.username}`);
-          
-        // NEXT STEP:
-        // 1. Navigate to your ChatLayout, e.g., /chat
-        // 2. Pass the dmConversation.conversation_id (or the whole dmConversation object)
-        //    to ChatLayout so it can select and display this chat.
-        //    This could be via URL params, route state, or a global state/context.
-        // Example (if using a global state setter like selectConversation from a context):
-        // selectConversation(dmConversation);
-        // navigate('/chat'); // Assuming you use react-router or similar
-        alert(`Found DM with ${friend.username}. Conversation ID: ${dmConversation.conversation_id}`);
+        navigate(`/chat/${dmConversation.conversation_id}`);
     } else {
-        console.warn('No existing DM found with ${friend.username || friend.id}.');
-        // FUTURE: You might want an RPC to "get or create DM conversation" here
-        // if one doesn't exist when clicking message.
-        alert('No DM found with ${friend.username}. You might need a feature to create one on demand.');
+        alert(`No DM found with ${friend.username}. Need to implement 'get or create'.`);
     }
   };
 
@@ -105,7 +91,6 @@ const FriendsPage: React.FC = () => {
           selectedKey={activeTab}
           onSelectionChange={setActiveTab}
       >
-        {/* ================== Tab 1: Add Friend ================== */}
         <Tab key="add" title="Add Friend">
             <div className="p-4 min-h-[300px]">
                 <h3 className="text-lg font-semibold mb-4 text-center text-base-content">Find New Friends</h3>
@@ -125,7 +110,7 @@ const FriendsPage: React.FC = () => {
                 {isSearching && <div className='flex justify-center p-8'><Spinner /></div>}
                 {!isSearching && searchResults.length > 0 && (
                     <ul className="space-y-3">
-                        {searchResults.map(userProfile => // Renamed to avoid conflict with 'user' from useAuth
+                        {searchResults.map(userProfile =>
                             renderUserCard(
                                 userProfile,
                                 <Button isIconOnly radius='md' size="sm" variant="flat" color="success" onPress={() => sendRequest(userProfile.id)} aria-label="Add Friend">
@@ -141,7 +126,6 @@ const FriendsPage: React.FC = () => {
             </div>
         </Tab>
 
-        {/* ================== Tab 2: Friends List ================== */}
         <Tab key="friends" title={
             <div className="flex items-center space-x-2">
               <span>Friends</span>
@@ -161,10 +145,11 @@ const FriendsPage: React.FC = () => {
                                friend,
                                <Button 
                                   size="sm" 
-                                  variant="ghost" 
+                                  radius='full'
+                                  variant="solid" 
                                   color="primary" 
                                   onPress={() => handleMessageFriend(friend)}
-                                  startContent={<ChatBubbleLeftEllipsisIcon className="w-5 h-5"/>}
+                                  startContent={<ChatBubbleOvalLeftIcon className="w-5 h-5"/>}
                                 >
                                   Message
                                 </Button>
@@ -175,7 +160,6 @@ const FriendsPage: React.FC = () => {
             </div>
         </Tab>
 
-        {/* ================== Tab 3: Outgoing Requests ================== */}
         <Tab key="outgoing"
         title={
             <div className="flex items-center space-x-2">
@@ -206,6 +190,5 @@ const FriendsPage: React.FC = () => {
     </div>
   );
 };
-
 
 export default FriendsPage;
