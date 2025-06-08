@@ -1,14 +1,14 @@
-import { useState, useCallback } from 'react';
-import { useAuth } from '../../contexts/AuthContext'; // Adjust path as needed
-import { supabase } from '../../supabase/supabaseClient'; // Adjust path as needed
+import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
+import { supabase } from '../../supabase/supabaseClient';
 import { Area } from 'react-easy-crop';
-import { addToast } from "@heroui/react"; // Assuming addToast is from here
-import { Session } from '@supabase/supabase-js';
+import { addToast } from "@heroui/react";
+import { Profile } from '../../types'; // Assuming you have a comprehensive Profile type
 
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 
-// Helper function to create a cropped image blob generic
 const createImageBlob = async (imageSrc: string, croppedAreaPixels: Area, rotation: number): Promise<Blob> => {
+  // ... (your existing createImageBlob function - no changes needed here)
   const imageElement = await new Promise<HTMLImageElement>((resolve, reject) => {
     const img = new window.Image();
     img.src = imageSrc;
@@ -52,13 +52,15 @@ const createImageBlob = async (imageSrc: string, croppedAreaPixels: Area, rotati
   });
 };
 
-
 export const useProfilePageLogic = () => {
-    const { session, user: authUser, refreshSession } = useAuth(); // Assuming useAuth provides user and a way to refresh
-  // If useAuth only provides session, then: const authUser = session?.user;
-  
+  const { session, user: authUser, refreshSession } = useAuth();
 
-  // Avatar Modal State & Logic
+  // --- Full Profile Data from 'profiles' table ---
+  const [profileData, setProfileData] = useState<Profile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [profileError, setProfileError] = useState<string | null>(null);
+
+  // --- Avatar Modal State & Logic ---
   const [isAvatarModalOpen, setAvatarModalOpen] = useState(false);
   const [avatarSrcForCropper, setAvatarSrcForCropper] = useState<string | null>(null);
   const [avatarCrop, setAvatarCrop] = useState({ x: 0, y: 0 });
@@ -67,7 +69,7 @@ export const useProfilePageLogic = () => {
   const [croppedAvatarAreaPixels, setCroppedAvatarAreaPixels] = useState<Area | null>(null);
   const [isUpdatingAvatar, setIsUpdatingAvatar] = useState(false);
 
-  // Banner Modal State & Logic
+  // --- Banner Modal State & Logic ---
   const [isBannerModalOpen, setBannerModalOpen] = useState(false);
   const [bannerSrcForCropper, setBannerSrcForCropper] = useState<string | null>(null);
   const [bannerCrop, setBannerCrop] = useState({ x: 0, y: 0 });
@@ -76,6 +78,48 @@ export const useProfilePageLogic = () => {
   const [croppedBannerAreaPixels, setCroppedBannerAreaPixels] = useState<Area | null>(null);
   const [isUpdatingBanner, setIsUpdatingBanner] = useState(false);
 
+  // --- Edit Profile (Text Details) Modal State & Logic ---
+  const [isEditDetailsModalOpen, setIsEditDetailsModalOpen] = useState(false);
+  const [isUpdatingProfileTextDetails, setIsUpdatingProfileTextDetails] = useState(false);
+
+
+  // --- Fetch Full Profile Data ---
+  const fetchProfileData = useCallback(async () => {
+    if (!authUser) {
+      setProfileData(null);
+      setProfileLoading(false);
+      return;
+    }
+    setProfileLoading(true);
+    setProfileError(null);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*') // Select all columns from your Profile type
+        .eq('id', authUser.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found, which can be valid
+        throw error;
+      }
+      setProfileData(data as Profile | null);
+    } catch (err: any) {
+      console.error("Error fetching profile:", err);
+      setProfileError(err.message);
+      addToast({ title: "Error fetching profile", description: err.message, color: "danger" });
+    } finally {
+      setProfileLoading(false);
+    }
+  }, [authUser]);
+
+  useEffect(() => {
+    if (authUser) {
+      fetchProfileData();
+    }
+  }, [authUser, fetchProfileData]);
+
+
+  // --- File Handling & Image Upload Logic ---
   const handleFileSelect = useCallback((
     e: React.ChangeEvent<HTMLInputElement>,
     setSrcForCropper: React.Dispatch<React.SetStateAction<string | null>>
@@ -114,77 +158,61 @@ export const useProfilePageLogic = () => {
     setIsUpdating: React.Dispatch<React.SetStateAction<boolean>>,
     closeModal: () => void
   ) => {
-    if (!srcForCropper || !croppedAreaPixelsToUse) {
-      addToast({ title: "Error", description: "No image source or crop area defined.", color: "danger" });
-      return;
-    }
-    if (!authUser || !authUser.id) {
-      addToast({ title: "Authentication Error", description: "User not authenticated.", color: "danger" });
+    if (!srcForCropper || !croppedAreaPixelsToUse || !authUser || !authUser.id) {
+      addToast({ title: "Error", description: "Missing data for image save.", color: "danger" });
       return;
     }
 
     setIsUpdating(true);
     try {
-      const blob = await createImageBlob(srcForCropper!, croppedAreaPixelsToUse!, rotationToUse);
+      const blob = await createImageBlob(srcForCropper, croppedAreaPixelsToUse, rotationToUse);
       const isAvatar = imageType === 'avatar';
       const bucket = isAvatar ? 'avatars' : 'banners';
-      const filePath = `${authUser!.id}/${imageType}.jpg`; // authUser is checked above
+      const filePath = `${authUser.id}/${imageType}.jpg`;
 
       const { error: uploadError } = await supabase.storage
         .from(bucket)
         .upload(filePath, blob, { upsert: true });
       if (uploadError) throw uploadError;
 
-      const { data: publicUrlData } = supabase.storage
-      .from(bucket)
-      .getPublicUrl(filePath);
-    if (!publicUrlData || !publicUrlData.publicUrl) {
-      throw new Error(`Could not get public URL for the ${imageType}.`);
-    }
-    const newImageUrl = `${publicUrlData.publicUrl}?t=${new Date().getTime()}`;
-
-    const metadataField = isAvatar ? 'profilePic' : 'bannerUrl';
-    const { error: updateAuthError } = await supabase.auth.updateUser({
-      data: {
-        ...(authUser!.user_metadata || {}),
-        [metadataField]: newImageUrl,
-      },
-    });
-    if (updateAuthError) throw updateAuthError;
-
-    if (isAvatar) { // Only update profiles.avatar_url if it's an avatar
-      const { error: updateProfileError } = await supabase
-          .from('profiles')
-          .update({ avatar_url: newImageUrl })
-          .eq('id', authUser!.id); // Match the user ID
-
-      if (updateProfileError) {
-          // Log or show a warning, but maybe don't fail the whole process
-          console.warn("Failed to update profiles table:", updateProfileError);
-          addToast({ title: "Profile Sync Warning", description: "Avatar updated, but profile sync had an issue.", color: "warning" });
+      const { data: publicUrlData } = supabase.storage.from(bucket).getPublicUrl(filePath);
+      if (!publicUrlData || !publicUrlData.publicUrl) {
+        throw new Error(`Could not get public URL for the ${imageType}.`);
       }
-  }
-  // *** END OF ADDED STEP ***
+      const newImageUrl = `${publicUrlData.publicUrl}?t=${new Date().getTime()}`;
 
-      addToast({ title: `${imageType.charAt(0).toUpperCase() + imageType.slice(1)} Updated`, description: `Your ${imageType} has been successfully updated.`, color: "success" });      console.log("Calling refreshSession after user metadata update...");
-       if (typeof refreshSession === 'function') {
-         await refreshSession(); // Refresh session to get new metadata
+      // Update auth.users.user_metadata
+      const metadataField = isAvatar ? 'profilePic' : 'bannerUrl';
+      await supabase.auth.updateUser({
+        data: { ...(authUser.user_metadata || {}), [metadataField]: newImageUrl },
+      });
+
+      // Update public.profiles table
+      const profileUpdateField = isAvatar ? 'avatar_url' : 'banner_url';
+      const { error: profileUpdateError } = await supabase
+        .from('profiles')
+        .update({ [profileUpdateField]: newImageUrl })
+        .eq('id', authUser.id);
+
+      if (profileUpdateError) {
+        console.warn(`Failed to update profiles.${profileUpdateField}:`, profileUpdateError);
+        addToast({ title: "Profile Sync Warning", description: `${imageType} updated, but profile sync issue.`, color: "warning" });
       }
+
+      addToast({ title: `${imageType.charAt(0).toUpperCase() + imageType.slice(1)} Updated`, description: `Your ${imageType} has been successfully updated.`, color: "success" });
+      fetchProfileData(); // Refetch profile data to get new image URL
+      if (typeof refreshSession === 'function') await refreshSession();
       closeModal();
-    } catch (error) {
-        console.error(`Failed to save ${imageType}:`, error); // Log the full error
-        addToast({ title: "Update Failed", description: `Error: ${(error as Error).message}`, color: "danger" });
-      } finally {
-        setIsUpdating(false); // This is correctly placed 
-      }
-    };
+    } catch (error: any) {
+      addToast({ title: "Update Failed", description: error.message, color: "danger" });
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
-  const saveAvatar = () => genericSaveImage('avatar', avatarSrcForCropper, croppedAvatarAreaPixels, avatarRotation, setIsUpdatingAvatar, () => setAvatarModalOpen(false));
-  const saveBanner = () => genericSaveImage('banner', bannerSrcForCropper, croppedBannerAreaPixels, bannerRotation, setIsUpdatingBanner, () => setBannerModalOpen(false));
+  const saveAvatar = () => genericSaveImage('avatar', avatarSrcForCropper, croppedAvatarAreaPixels, avatarRotation, setIsUpdatingAvatar, closeAvatarModal);
+  const saveBanner = () => genericSaveImage('banner', bannerSrcForCropper, croppedBannerAreaPixels, bannerRotation, setIsUpdatingBanner, closeBannerModal);
 
-  
-
-  // Reset cropper states when modal is closed or new image selected
   const resetAvatarCropperState = () => {
     setAvatarSrcForCropper(null);
     setCroppedAvatarAreaPixels(null);
@@ -201,10 +229,74 @@ export const useProfilePageLogic = () => {
     setBannerRotation(0);
   };
 
+  // --- Update Profile Text Details (Username, Description) ---
+  const updateProfileTextDetails = async (details: { newUsername: string; newDescription: string }) => {
+    if (!authUser) {
+      addToast({ title: "Error", description: "Not authenticated.", color: "danger" });
+      return;
+    }
+    if (!details.newUsername.trim()) {
+        addToast({ title: "Username Required", description: "Please enter a username.", color: "warning" });
+        return;
+    }
+
+    setIsUpdatingProfileTextDetails(true);
+    try {
+      // 1. Update public.profiles table
+      const { error: profileUpdateError } = await supabase
+        .from('profiles')
+        .update({
+          username: details.newUsername.trim(),
+          description: details.newDescription.trim(),
+          // profile_setup_complete: true, // If this update implies setup is now complete
+        })
+        .eq('id', authUser.id);
+
+      if (profileUpdateError) {
+        if (profileUpdateError.message.includes('duplicate key value violates unique constraint "profiles_username_key"')) {
+          addToast({ title: "Username Taken", description: "That username is already in use.", color: "danger" });
+        } else if (profileUpdateError.message.includes('profiles_username_key')) { // Catch other username issues
+            addToast({ title: "Username Error", description: "Problem with username. It might be taken or invalid.", color: "danger" });
+        } else {
+          throw profileUpdateError;
+        }
+        return; // Stop if profile update failed
+      }
+
+      // 2. Optionally update auth.users.user_metadata if you store username there too
+      // This is good if your handle_new_user trigger or other parts of app rely on metadata.username
+      // Compare with existing metadata username to avoid unnecessary updates
+      const currentMetaUsername = authUser.user_metadata?.username;
+      if (details.newUsername.trim() !== currentMetaUsername) {
+        await supabase.auth.updateUser({
+          data: {
+            ...(authUser.user_metadata || {}),
+            username: details.newUsername.trim(),
+            // If 'name' in metadata should be full_name and username is separate:
+            name: profileData?.full_name || authUser.user_metadata?.name, // Keep existing full_name
+          },
+        });
+      }
+
+      addToast({ title: "Profile Updated", description: "Your details have been saved.", color: "success" });
+      fetchProfileData(); // Refresh profile data
+      if (typeof refreshSession === 'function') await refreshSession();
+      closeEditDetailsModal();
+
+    } catch (error: any) {
+      addToast({ title: "Update Failed", description: error.message, color: "danger" });
+    } finally {
+      setIsUpdatingProfileTextDetails(false);
+    }
+  };
+
 
   return {
     authUser,
-    // Avatar
+    profileData,
+    profileLoading,
+    profileError,
+
     isAvatarModalOpen,
     openAvatarModal: () => { resetAvatarCropperState(); setAvatarModalOpen(true); },
     closeAvatarModal: () => { setAvatarModalOpen(false); resetAvatarCropperState(); },
@@ -217,7 +309,6 @@ export const useProfilePageLogic = () => {
     saveAvatar,
     isUpdatingAvatar,
 
-    // Banner
     isBannerModalOpen,
     openBannerModal: () => { resetBannerCropperState(); setBannerModalOpen(true); },
     closeBannerModal: () => { setBannerModalOpen(false); resetBannerCropperState(); },
@@ -229,5 +320,25 @@ export const useProfilePageLogic = () => {
     handleBannerFileSelect: (e: React.ChangeEvent<HTMLInputElement>) => { resetBannerCropperState(); handleFileSelect(e, setBannerSrcForCropper); },
     saveBanner,
     isUpdatingBanner,
+
+    isEditDetailsModalOpen,
+    openEditDetailsModal: () => setIsEditDetailsModalOpen(true),
+    closeEditDetailsModal: () => setIsEditDetailsModalOpen(false),
+    updateProfileTextDetails,
+    isUpdatingProfileTextDetails,
+    
+    refreshProfileData: fetchProfileData, // Expose to allow manual refresh if needed
   };
 };
+
+function closeBannerModal(): void {
+  throw new Error('Function not implemented.');
+}
+function closeAvatarModal(): void {
+  throw new Error('Function not implemented.');
+}
+
+function closeEditDetailsModal() {
+  throw new Error('Function not implemented.');
+}
+

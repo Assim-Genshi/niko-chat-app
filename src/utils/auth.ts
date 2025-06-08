@@ -1,20 +1,31 @@
 // src/utils/auth.ts
+// src/utils/auth.ts
 import { supabase } from '../supabase/supabaseClient';
 import { addToast } from "@heroui/react";
-import { Session } from '@supabase/supabase-js';
+// Session type might not be needed here if not used
 
-// Add `navigate` as a parameter to both functions
 export const signUp = async (
-  name: string,
+  fullName: string,      // Changed from 'name' to 'fullName' for clarity
+  username: string,      // New parameter for the user-chosen username
+  chatamataId: string, // New parameter for the generated Chatamata ID
   email: string,
   password: string,
   navigate: (path: string) => void
 ) => {
   try {
-    const { error } = await supabase.auth.signUp({
+    // What you pass in options.data is what raw_user_meta_data in the trigger will see
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { name } },
+      options: {
+        data: {
+          fullName: fullName, // For profiles.full_name
+          username: username, // For profiles.username
+          chatamataId: chatamataId // For profiles.chatamata_id
+          // 'name' field from your old signup is now 'fullName'
+          // 'profilePic', 'bannerUrl', 'description' will be null initially
+        },
+      },
     });
 
     if (error) throw error;
@@ -24,17 +35,16 @@ export const signUp = async (
       description: "We’ve sent you a confirmation email. Please verify your email before logging in.",
       color: "success",
     });
-
-    // Redirect to login page after successful sign-up
-    navigate("/login"); // <-- New redirection logic
-  } catch (error) {
+    navigate("/login");
+  } catch (error: any) {
     addToast({
       title: "Sign Up Failed",
-      description: `Error: ${(error as Error).message}`,
+      description: error.message || "An unexpected error occurred.",
       color: "danger",
     });
   }
 };
+
 
 export const login = async (
   email: string,
@@ -42,7 +52,7 @@ export const login = async (
   navigate: (path: string) => void
 ) => {
   try {
-    const { error, session } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -65,3 +75,5 @@ export const login = async (
     });
   }
 };
+
+

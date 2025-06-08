@@ -12,6 +12,7 @@ export interface ConversationPreview {
   latest_message_content: string | null;
   latest_message_created_at: string | null;
   other_participant_id: string | null;
+  group_name: string | null;
 }
 
 export const useConversations = () => {

@@ -1,17 +1,22 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'; // Added useCallback
-import { useMessages } from './useMessages'; // Adjust path
-import { ConversationPreview } from './useConversations'; // Adjust path
-import { Button, Input, Avatar, Skeleton } from '@heroui/react'; // Removed Image, Spinner, as Avatar and Skeleton cover them
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useMessages } from './useMessages';
+import { ConversationPreview } from './useConversations';
+import { Button, Input, Avatar, Skeleton, ScrollShadow } from '@heroui/react';
 import { ArrowDownIcon, PaperAirplaneIcon } from '@heroicons/react/24/solid';
-import { useAuth } from '../../contexts/AuthContext'; // Adjust path
-import { useSoundSettingsStore } from '../../lib/useSoundSettingsStore'; // Your sound store path
+import { useAuth } from '../../contexts/AuthContext';
+import { useSoundSettingsStore } from '../../lib/useSoundSettingsStore';
 import { usePresence } from '../../contexts/PresenceContext';
+import { useProfilePreview } from '../../contexts/ProfilePreviewContext';
+import { Profile } from '../../types';
+import { supabase } from '../../supabase/supabaseClient';
+
 
 interface ChatWindowProps {
   conversation: ConversationPreview;
 }
 
 const MessageSkeleton: React.FC<{ isOwnMessage?: boolean }> = ({ isOwnMessage }) => (
+  // ... (No changes to this component)
   <div className={`flex mb-4 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
     <div className={`flex items-end space-x-2 max-w-xs md:max-w-md ${isOwnMessage ? 'flex-row-reverse' : ''}`}>
       <Skeleton className="rounded-full w-fit h-fit flex-shrink-0">
@@ -29,6 +34,7 @@ const MessageSkeleton: React.FC<{ isOwnMessage?: boolean }> = ({ isOwnMessage })
   </div>
 );
 
+
 export const ChatWindow: React.FC<ChatWindowProps> = ({ conversation }) => {
   const { session } = useAuth();
   const userId = session?.user?.id;
@@ -37,82 +43,144 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversation }) => {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+  const prevScrollHeightRef = useRef<number | null>(null);
+  
+  // A ref to track if the initial scroll for this conversation has been done.
+  const initialScrollDoneRef = useRef(false);
+
+  // ... (other hooks like useProfilePreview, usePresence are unchanged)
+  const { viewProfile } = useProfilePreview();
   const { onlineUsers } = usePresence();
 
-  // --- Typing Sound Logic ---
+  // ... (handleHeaderClick and sound logic are unchanged)
+    const handleHeaderClick = async () => {
+    // ...
+    if (conversation.is_group || !conversation.other_participant_id) {
+      if (conversation.is_group) {
+          alert(`Group profile previews for '${conversation.group_name || 'Group'}' not implemented yet.`);
+      }
+      return;
+    }
+
+    const { data: fullProfile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', conversation.other_participant_id)
+        .single();
+
+    if (fullProfile) {
+        viewProfile(fullProfile as Profile);
+    } else {
+        console.warn("Could not fetch full profile for preview, using partial info:", error);
+        const partialProfile: Profile = {
+          id: conversation.other_participant_id,
+          username: conversation.display_name,
+          full_name: conversation.display_name,
+          avatar_url: conversation.display_avatar,
+          banner_url: null,
+          description: null,
+          chatamata_id: null,
+          joined_at: null,
+          updated_at: null,
+          profile_setup_complete: false,
+        };
+        viewProfile(partialProfile);
+    }
+  };
+
+  const isOtherUserOnline = !conversation.is_group && conversation.other_participant_id && onlineUsers.has(conversation.other_participant_id);
+  
   const { typingSoundEnabled, typingSoundDelay } = useSoundSettingsStore();
   const soundsRef = useRef<HTMLAudioElement[]>([]);
   const lastSoundTimeRef = useRef(0);
-  const soundIndexRef = useRef(0); // To cycle through sounds
+  const soundIndexRef = useRef(0);
 
-  // Initialize sounds once
   useEffect(() => {
-    // Ensure Audio objects are only created client-side
     if (typeof window !== "undefined") {
       soundsRef.current = [
-        new Audio("/meow-1.mp3"), // Ensure these paths are correct (e.g., in your /public folder)
+        new Audio("/meow-1.mp3"),
         new Audio("/meow-2.mp3"),
         new Audio("/meow-3.mp3")
       ];
-      // Optional: preload sounds and set initial volume
       soundsRef.current.forEach(sound => {
-        sound.load(); // Prepares the audio file for playing
-        sound.volume = 0.3; // Adjust volume as needed (0.0 to 1.0)
+        sound.load();
+        sound.volume = 0.3;
       });
     }
-  }, []); // Empty dependency array means this runs once on mount
+  }, []);
 
   const playTypingSound = useCallback(() => {
     if (typingSoundEnabled && soundsRef.current.length > 0) {
       const now = Date.now();
-      // typingSoundDelay is used here as a throttle between sound plays
       if (now - lastSoundTimeRef.current > typingSoundDelay) {
         const soundToPlay = soundsRef.current[soundIndexRef.current];
         if (soundToPlay) {
-          soundToPlay.currentTime = 0; // Rewind to start
-          soundToPlay.play().catch(error => {
-            // Audio play can be interrupted or fail, especially if user hasn't interacted with the page
-            console.error("Error playing typing sound:", error);
-          });
+          soundToPlay.currentTime = 0;
+          soundToPlay.play().catch(error => console.error("Error playing typing sound:", error));
           lastSoundTimeRef.current = now;
           soundIndexRef.current = (soundIndexRef.current + 1) % soundsRef.current.length;
         }
       }
     }
-  }, [typingSoundEnabled, typingSoundDelay]); // Re-create if settings change
+  }, [typingSoundEnabled, typingSoundDelay]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewMessage(e.target.value);
-    playTypingSound(); // Play sound on input change
+    playTypingSound();
   };
-  // --- End Typing Sound Logic ---
 
+  // --- CORRECTED SCROLL LOGIC ---
+
+  // Effect 1: Handles the INITIAL scroll when the component first appears.
+  useEffect(() => {
+    // When the component first mounts (forced by the key prop in the parent),
+    // this ref is false. We wait for the initial message load to complete.
+    if (!loading && messages.length > 0 && !initialScrollDoneRef.current) {
+      // Use 'auto' for an instant scroll, which is best for initial load.
+      scrollToBottom('auto');
+      // Mark the initial scroll as done for this conversation view.
+      initialScrollDoneRef.current = true;
+    }
+  }, [loading, messages.length]); // Runs when loading state or messages change.
+
+
+  // Effect 2: Handles scrolling for subsequent updates (new messages, loading old ones).
   useEffect(() => {
     const container = messagesContainerRef.current;
-    if (container) {
-      const isScrolledToBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 100;
-      if (isScrolledToBottom) {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-        setShowScrollToBottom(false);
-      } else if (messages.length > 0) { // Only show if there are messages to scroll up from
-        setShowScrollToBottom(true);
+    if (!container) return;
+  
+    // Logic to preserve scroll position when loading *older* messages.
+    if (prevScrollHeightRef.current !== null) {
+      container.scrollTop = container.scrollHeight - prevScrollHeightRef.current;
+      prevScrollHeightRef.current = null; // Reset after adjusting.
+    } else if (initialScrollDoneRef.current) {
+      // For NEW messages arriving live, only scroll if the user is already near the bottom.
+      const isNearBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 200; // A bit of tolerance
+      if (isNearBottom) {
+        scrollToBottom('smooth');
       }
     }
-  }, [messages]);
+  }, [messages]); // This effect runs only when the messages array itself changes.
 
-  const handleScroll = () => {
+
+  const handleScroll = useCallback(() => {
     const container = messagesContainerRef.current;
-    if (container) {
-      const isNearBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 200;
-      setShowScrollToBottom(!isNearBottom);
-      if (isNearBottom && loading && messages.length > 0) { // Hide if scrolled to bottom during initial load more
-        setShowScrollToBottom(false);
-      }
-    }
-  };
+    if (!container) return;
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // Logic for showing/hiding the "scroll to bottom" button
+    const isNearBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 200;
+    setShowScrollToBottom(!isNearBottom);
+
+    // Logic for infinite scroll (loading more messages)
+    if (container.scrollTop === 0 && hasMore && !loading) {
+      prevScrollHeightRef.current = container.scrollHeight;
+      loadMoreMessages();
+    }
+  }, [hasMore, loading, loadMoreMessages]);
+
+
+  const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
+    messagesEndRef.current?.scrollIntoView({ behavior });
   };
 
   const handleSend = async (e: React.FormEvent) => {
@@ -121,36 +189,44 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversation }) => {
     const success = await sendMessage(newMessage);
     if (success) {
       setNewMessage('');
-      // Ensure DOM updates before scrolling, requestAnimationFrame can also be used
-      setTimeout(scrollToBottom, 0);
+      setTimeout(() => scrollToBottom('auto'), 0);
     }
   };
 
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSend(e as unknown as React.FormEvent); // Cast for form submission context
+      handleSend(e as unknown as React.FormEvent);
     }
-    // You could also trigger playTypingSound() here for specific keys if preferred
-    // but onChange generally covers typing well.
   };
 
+  // --- JSX RENDER ---
+  // The entire return (...) part is exactly the same as before.
+  // I won't paste it again to keep this short.
   return (
     <div className="w-full flex flex-col h-full relative">
       {/* Header */}
-      <div className="p-3 border-b border-base-300 flex items-center space-x-3 sticky top-0 z-10">
-        <Avatar
-            src={conversation.display_avatar || '/avatar.png'}
-            alt={conversation.display_name || 'Chat'}
-            size="md"
-        />
+      <div
+        onClick={handleHeaderClick}
+        className="p-3 flex items-center space-x-3 sticky top-0 z-10 cursor-pointer hover:bg-base-200/50 transition-colors"
+      >
+        <div className='relative'>
+             <Avatar
+                src={conversation.display_avatar || '/avatar.png'}
+                alt={conversation.display_name || 'Chat'}
+                size="md"
+            />
+        </div>
         <div className="flex flex-col">
             <h2 className="text-base font-semibold text-base-content">{conversation.display_name}</h2>
+            {isOtherUserOnline ? <p className='text-xs text-green-500'>Online</p> : <p className='text-xs text-gray-400'>Offline</p> }
         </div>
       </div>
 
       {/* Messages Area */}
-      <div ref={messagesContainerRef} onScroll={handleScroll} className="flex-grow p-4 overflow-y-auto bg-base-50 space-y-4">
+      <ScrollShadow ref={messagesContainerRef} onScroll={handleScroll} className='h-full' size={60}>
+        <div className="flex-grow p-4 overflow-y-auto bg-base-50 space-y-4">
+            <p className='w-full text-xs text-center text-base-content/50'>This is the beginning of your conversation with {conversation.display_name}</p>
           {loading && messages.length === 0 && (
             <>
               <MessageSkeleton />
@@ -158,7 +234,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversation }) => {
               <MessageSkeleton />
             </>
           )}
-          {hasMore && !loading && (
+          {hasMore && ( // Removed !loading to prevent the button from disappearing during load
               <div className="text-center my-2">
                   <Button variant="light" color="default" onPress={loadMoreMessages} isLoading={loading} size="sm">
                     Load More Messages
@@ -194,28 +270,27 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversation }) => {
         ))}
          <div ref={messagesEndRef} />
       </div>
-
+      
        {showScrollToBottom && (
         <Button
           isIconOnly
-          variant="flat"
-          color="default"
-          //onpress={scrollToBottom}
-          className="absolute bottom-20 right-6 z-20 rounded-full shadow-lg bg-base-100 hover:bg-base-200"
+          onPress={() => scrollToBottom('smooth')}
+          className="absolute bottom-20 right-6 z-20 rounded-full shadow-lg bg-base-content/60 backdrop-blur-xl text-base-100"
           aria-label="Scroll to bottom"
         >
           <ArrowDownIcon className='w-4 h-4' />
         </Button>
       )}
+      </ScrollShadow>
 
       {/* Input Area */}
-      <div className="p-3 border-t border-base-300 bg-base-100 sticky bottom-0">
+      <div className="p-3 bg-base-100 sticky bottom-0">
         <form onSubmit={handleSend} className="flex items-center space-x-2">
           <Input
             placeholder="Type a message..."
             value={newMessage}
-            onChange={handleInputChange} // Use the new handler
-            onKeyDown={handleInputKeyDown} // Keep Enter key functionality separate
+            onChange={handleInputChange}
+            onKeyDown={handleInputKeyDown}
             fullWidth
             size="md"
             className="flex-grow"
@@ -228,13 +303,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversation }) => {
             color="primary"
             size="md"
             variant="solid"
-            isDisabled={!newMessage.trim() || loading}
+            isDisabled={!newMessage.trim()}
             aria-label="Send message"
             radius='full'
             className="flex-shrink-0"
-            isLoading={loading}
           >
-            <PaperAirplaneIcon className='w-5 h-5' />
+            <PaperAirplaneIcon className='w-6 h-6' />
           </Button>
         </form>
       </div>

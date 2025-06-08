@@ -3,17 +3,20 @@ import React from 'react';
 import { AuthProvider } from '../contexts/AuthContext';
 import { PresenceProvider } from '../contexts/PresenceContext';
 import { ChatStateProvider } from '../contexts/ChatStateContext';
-import { HeroUIProvider } from '@heroui/react'; // Assuming this is your UI library's provider
-import { ToastProvider } from '@heroui/toast';   // Assuming this is your toast provider
+import { ProfilePreviewProvider } from '../contexts/ProfilePreviewContext'; // <--- IMPORT
+import { HeroUIProvider } from '@heroui/react';
+import { ToastProvider } from '@heroui/toast';
 
 const Providers: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
-    <HeroUIProvider> {/* UI Library provider often goes near the outside */}
-      <ToastProvider /> {/* Toast provider */}
+    <HeroUIProvider>
+      <ToastProvider />
       <AuthProvider>
         <PresenceProvider>
-          <ChatStateProvider> {/* ChatStateProvider is now inside BrowserRouter via main.tsx */}
-            {children}
+          <ChatStateProvider>
+            <ProfilePreviewProvider> {/* <--- ADD HERE */}
+              {children}
+            </ProfilePreviewProvider>
           </ChatStateProvider>
         </PresenceProvider>
       </AuthProvider>

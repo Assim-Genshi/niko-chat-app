@@ -4,10 +4,11 @@ import { addToast } from "@heroui/react";
 import { login } from "../utils/auth"; // Use your auth utility
 import Logo from "./Logo"; // Adjust path if needed
 import { IconBrandGoogleFilled } from '@tabler/icons-react';
+import { ThemeToggle } from "./ThemeSwitcher";
 
 //------- HeroUI --------
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/solid";
-import { Button, Link, Form, Image } from "@heroui/react";
+import { Button, Link, Form } from "@heroui/react";
 import { ThemedImage } from "./ThemedImage";
 
 const LoginPage = () => {
@@ -138,6 +139,10 @@ const LoginPage = () => {
                  Create account
               </Link>
             </p>
+          </div>
+          {/* Theme Toggle */}
+          <div className="absolute bottom-4 left-4">
+            <ThemeToggle />
           </div>
         </div>
 

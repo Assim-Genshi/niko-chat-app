@@ -1,17 +1,17 @@
 // src/App.tsx
 import React from 'react'; // For JSX
 import { Routes, Route, Navigate } from "react-router-dom";
-import { useAuth } from "./contexts/AuthContext"; // This will now work
+import { useAuth } from "./contexts/AuthContext";
 import { Spinner } from "@heroui/react";
 
 // Layouts
 import DefaultLayout from "./defaultLayout";
 
-// Pages (ensure these components exist and are correctly imported)
-import HomePage from "./pages/homepage"; // Corrected typo from Homepge
+// Pages
+import HomePage from "./pages/homepage";
 import SignUp from "./components/SignUp";
 import Login from "./components/Login";
-import ChatPage from "./pages/chatpage"; // Your chat page component
+import ChatPage from "./pages/chatpage";
 import ProfilePage from "./pages/profile/ProfilePage";
 import FriendsPage from "./features/friends/FriendsPage";
 import SettingsPage from "./pages/SettingsPage";
@@ -24,7 +24,6 @@ const LoadingScreen = () => (
 );
 
 function App() {
-  // useAuth() is now correctly called within the AuthProvider context (from providers.tsx)
   const { session, loading } = useAuth();
 
   if (loading) {
@@ -32,10 +31,8 @@ function App() {
   }
 
   return (
-    // The <Router> (BrowserRouter) is now in main.tsx, wrapping everything
-    // The other providers are also in main.tsx (via Providers.tsx), wrapping App
     <Routes>
-      {/* Public Routes */}
+      {/* Public Route for HomePage - always accessible at "/" */}
       <Route path="/" element={<HomePage />} />
 
       {/* Auth Routes: Redirect if logged in */}
@@ -49,11 +46,14 @@ function App() {
       />
 
       {/* Protected Routes: Require login, use DefaultLayout */}
+      {/* This is now a "pathless" layout route. It provides the DefaultLayout
+          for its children but doesn't claim a path itself (like "/").
+          This allows the <Route path="/" element={<HomePage />} /> above to handle the root path.
+      */}
       <Route
-        path="/" // Layout route will match any nested path if not more specific
         element={session ? <DefaultLayout /> : <Navigate to="/login" replace />}
       >
-        {/* ChatPage will render ChatLayout, which uses useParams for :conversationId */}
+        {/* Child routes will render inside DefaultLayout's <Outlet /> */}
         <Route path="chat" element={<ChatPage />} />
         <Route path="chat/:conversationId" element={<ChatPage />} />
 
@@ -61,9 +61,14 @@ function App() {
         <Route path="profile" element={<ProfilePage />} />
         <Route path="friends" element={<FriendsPage />} />
         <Route path="notifications" element={<NotificationsPage />} />
-
-        {/* Default route when logged in and at "/" inside DefaultLayout */}
-        <Route index element={<Navigate to="/chat" replace />} />
+        
+        {/*
+          The original index route that redirected from "/" to "/chat"
+          when inside the DefaultLayout (path="/") is no longer needed here because
+          DefaultLayout no longer exclusively handles the "/" path for logged-in users.
+          Navigation to "/chat" after login is handled by the redirects in the
+          login/signup routes and the catch-all for logged-in users.
+        */}
       </Route>
 
       {/* Catch-all for any other paths */}

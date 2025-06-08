@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useFriends, Profile } from './useFriends'; // Your existing hook
+import { useFriends } from './useFriends'; // Your existing hook
 import { useConversations, ConversationPreview } from '../chat/useConversations'; // Adjust path
 import { usePresence } from '../../contexts/PresenceContext'; // Adjust path to your PresenceContext
 import { Button, Input, Card, Spinner, Avatar, Tabs, Tab, Chip } from '@heroui/react';
 import { UserPlusIcon, MagnifyingGlassIcon, ChatBubbleOvalLeftIcon } from '@heroicons/react/24/solid'; // Added Chat icon
 import { useNavigate } from 'react-router-dom'; // <--- Import useNavigate
+import { useProfilePreview } from '../../contexts/ProfilePreviewContext'; // <--- IMPORT
+import { Profile } from '@/types';
 
 const FriendsPage: React.FC = () => {
   const {
@@ -19,6 +21,7 @@ const FriendsPage: React.FC = () => {
   const { conversations, loading: conversationsLoading } = useConversations();
   const { onlineUsers } = usePresence();
   const navigate = useNavigate(); // <--- Use navigate hook
+  const { viewProfile } = useProfilePreview();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Profile[]>([]);
@@ -57,14 +60,22 @@ const FriendsPage: React.FC = () => {
   };
 
   const renderUserCard = (
-    user: Profile,
+    user: Profile, // This Profile type comes from useFriends (which should be the comprehensive one)
     actions: React.ReactNode,
     key?: string | number
   ) => {
     const isOnline = onlineUsers.has(user.id);
+    const handleCardClick = () => {
+      console.log('FriendsPage: Clicking to view profile:', user);
+      if (user && user.id) {
+          viewProfile(user); // This 'user' object MUST be the full Profile type
+      } else {
+          console.error("FriendsPage: Invalid user data for profile preview", user);
+      }
+    };
     return (
         <Card key={key || user.id} className="flex flex-row bg-base-200 items-center justify-between py-2.5 px-4 rounded-xl shadow-sm">
-            <div className="flex items-center space-x-3 min-w-0">
+            <div onClick={handleCardClick} className="flex items-center space-x-3 min-w-0 cursor-pointer"> {/* Added cursor-pointer */}
                 <div className="relative">
                     <Avatar src={user.avatar_url || '/avatar.png'} alt={user.username || 'user'} />
                     {isOnline && (

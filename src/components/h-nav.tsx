@@ -29,7 +29,7 @@ import { ThemeToggle } from "./ThemeSwitcher";
 const Navbar = () => {
   const navigate = useNavigate();
   const { session } = useAuth();
-  const { authUser } = useProfilePageLogic();
+  const { authUser, profileData } = useProfilePageLogic();
   const { incomingRequests, loading: friendsLoading } = useFriends();
   const [isMobile, setIsMobile] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -75,10 +75,7 @@ const Navbar = () => {
     },
   ];
 
-  const displayName = authUser?.user_metadata?.name ||
-                      authUser?.user_metadata?.display_name ||
-                      authUser?.email?.split('@')[0] ||
-                      "User";
+  const displayName = profileData?.username || authUser?.user_metadata?.display_name || authUser?.user_metadata?.username || authUser?.email?.split('@')[0] || "User";
   const profilePicUrl = authUser?.user_metadata?.profilePic || undefined;
 
   const handleLogout = async () => {
@@ -159,7 +156,7 @@ const Navbar = () => {
                 <div className={`flex items-center gap-3 p-2 bg-base-300 hover:bg-base-300/60 rounded-2xl transition-all duration-300 cursor-pointer ${isMobile || isCollapsed ? "justify-start p-1" : ""}`}>
                   <Avatar className="shrink-0 overflow-hidden" src={profilePicUrl} alt="Profile" />
                   <div className={`flex flex-col items-start overflow-hidden transition-all duration-300 ${isMobile || isCollapsed ? "w-0 opacity-0 blur-md" : "w-40 opacity-100"}`}>
-                    <p className="font-medium text-sm text-base-content truncate w-fit">{displayName}</p>
+                    <h1 className="font-medium text-sm text-base-content truncate w-fit">{displayName}</h1>
                     <p className="text-xs text-base-content/70 truncate w-fit">{authUser?.email || "not provided"}</p>
                   </div>
                 </div>

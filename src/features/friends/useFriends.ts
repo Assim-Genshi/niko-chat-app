@@ -1,24 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../../supabase/supabaseClient'; // Adjust path
-import { useAuth } from '../../contexts/AuthContext'; // Adjust path
-//import { Profile } from '../../types';
+import { supabase } from '../../supabase/supabaseClient';
+import { useAuth } from '../../contexts/AuthContext';
 import { addToast } from "@heroui/react";
-import { useProfilePageLogic } from '@/pages/profile/ProfilePageLogic';
+import { Profile } from '../../types'; // <--- IMPORT THE FULL PROFILE TYPE
 
-// Define a type for a Profile (adjust based on your profiles table)
-export interface Profile {
-  id: string;
-  username: string | null;
-  full_name: string | null;
-  avatar_url: string | null;
-}
+// Remove any local Profile interface definition if it exists in this file.
 
-// Define a type for our friendship data structure
 export interface Friendship {
   id: number;
-  friend: Profile;
+  friend: Profile; // Now uses the imported, comprehensive Profile type
   status: 'pending' | 'accepted' | 'rejected' | 'blocked';
-  is_requester: boolean; // True if the current user sent the 'pending' request
+  is_requester: boolean;
 }
 
 export const useFriends = () => {
@@ -31,9 +23,11 @@ export const useFriends = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  // --- Data Fetching ---
   const fetchFriendships = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+        setLoading(false); // Ensure loading is set to false if no user
+        return;
+    }
     setLoading(true);
     setError(null);
 
@@ -44,8 +38,14 @@ export const useFriends = () => {
           id,
           status,
           action_user_id,
-          user_one:profiles!friendships_user_one_id_fkey(id, username, full_name, avatar_url),
-          user_two:profiles!friendships_user_two_id_fkey(id, username, full_name, avatar_url)
+          user_one:profiles!friendships_user_one_id_fkey(
+            id, username, full_name, avatar_url, banner_url, 
+            description, chatamata_id, joined_at, updated_at, profile_setup_complete
+          ),
+          user_two:profiles!friendships_user_two_id_fkey(
+            id, username, full_name, avatar_url, banner_url, 
+            description, chatamata_id, joined_at, updated_at, profile_setup_complete
+          )
         `)
         .or(`user_one_id.eq.${user.id},user_two_id.eq.${user.id}`);
 
@@ -55,26 +55,48 @@ export const useFriends = () => {
       const incomingList: Friendship[] = [];
       const outgoingList: Friendship[] = [];
 
-      data.forEach((item: any) => {
-        const friendProfile = item.user_one.id === user.id ? item.user_two : item.user_one;
-        const isRequester = item.action_user_id === user.id;
-
-        if (item.status === 'accepted') {
-          acceptedList.push(friendProfile);
-        } else if (item.status === 'pending') {
-          const friendshipData = {
-            id: item.id,
-            friend: friendProfile,
-            status: item.status,
-            is_requester: isRequester,
-          };
-          if (isRequester) {
-            outgoingList.push(friendshipData);
-          } else {
-            incomingList.push(friendshipData);
+      if (data) { // Check if data is not null
+        data.forEach((item: any) => {
+          const friendProfileData = item.user_one?.id === user.id ? item.user_two : item.user_one;
+          
+          if (!friendProfileData || !friendProfileData.id) { // Check if profile data or id exists
+              console.warn("Friendship record found with missing or incomplete profile data:", item);
+              return; 
           }
-        }
-      });
+
+          // Ensure all expected fields are present, provide defaults if necessary
+          const friendProfile: Profile = {
+            id: friendProfileData.id,
+            username: friendProfileData.username || null,
+            full_name: friendProfileData.full_name || null,
+            avatar_url: friendProfileData.avatar_url || null,
+            banner_url: friendProfileData.banner_url || null,
+            description: friendProfileData.description || null,
+            chatamata_id: friendProfileData.chatamata_id || null,
+            joined_at: friendProfileData.joined_at || null,
+            updated_at: friendProfileData.updated_at || null,
+            profile_setup_complete: friendProfileData.profile_setup_complete || false,
+          };
+
+          const isRequester = item.action_user_id === user.id;
+
+          if (item.status === 'accepted') {
+            acceptedList.push(friendProfile);
+          } else if (item.status === 'pending') {
+            const friendshipData: Friendship = {
+              id: item.id,
+              friend: friendProfile,
+              status: item.status,
+              is_requester: isRequester,
+            };
+            if (isRequester) {
+              outgoingList.push(friendshipData);
+            } else {
+              incomingList.push(friendshipData);
+            }
+          }
+        });
+      }
 
       setFriends(acceptedList);
       setIncomingRequests(incomingList);
@@ -100,13 +122,16 @@ export const useFriends = () => {
     try {
       const { data, error: searchError } = await supabase
         .from('profiles')
-        .select('id, username, full_name, avatar_url, updated_at') // Include updated_at
-        .ilike('username', `%${query}%`)
+        .select(`
+            id, username, full_name, avatar_url, banner_url, 
+            description, chatamata_id, joined_at, updated_at, profile_setup_complete
+        `) // <--- UPDATED: Select all fields
+        .ilike('username', `%${query}%`) // Or search by full_name, chatamata_id too if desired
         .neq('id', user.id)
         .limit(10);
   
       if (searchError) throw searchError;
-      return data || [];
+      return (data as Profile[]) || []; // Cast to Profile[]
     } catch (err: any) {
       addToast({ title: "Search Error", description: err.message, color: "danger" });
       return [];
@@ -183,3 +208,4 @@ export const useFriends = () => {
     refetch: fetchFriendships, // Expose refetch function
   };
 };
+

@@ -3,11 +3,17 @@ import { User, Session } from '@supabase/supabase-js';
 
 // Profile type based on your 'profiles' table and needs
 export interface Profile {
-  id: string; // Corresponds to auth.users.id
+  id: string;
   username: string | null;
   full_name: string | null;
   avatar_url: string | null;
-  updated_at: string | null;
+  banner_url: string | null;       // <-- Ensure this is here
+  description: string | null;      // <-- Ensure this is here
+  chatamata_id: string | null;   // <-- Ensure this is here
+  joined_at: string | null;        // <-- Ensure this is here (TIMESTAMPTZ from DB)
+  updated_at: string | null;       // <-- Ensure this is here (TIMESTAMPTZ from DB)
+  profile_setup_complete: boolean;
+  // Add more fields as needed
 }
 
 // You might extend this later with online status, etc.

@@ -11,65 +11,59 @@ import { useParams, useNavigate } from 'react-router-dom';
 const MOBILE_BREAKPOINT = 768;
 
 export const ChatLayout: React.FC = () => {
-  const { selectedConversation, selectConversationById, selectConversation } = useChatState(); // selectConversation (navigating one) is re-added as it's used in handleSelectConversationInUI
+  const { selectedConversation, selectConversationById, selectConversation } = useChatState();
   const { conversations, loading: convosLoading } = useConversations();
   const { conversationId } = useParams<{ conversationId?: string }>();
   const navigate = useNavigate();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  // Effect to sync URL -> ChatState
+  // ... (No changes to useEffect or handlers)
   useEffect(() => {
     if (convosLoading) {
       return;
     }
-
     const idToSelect = conversationId ? parseInt(conversationId, 10) : null;
-
     if (idToSelect) {
         const foundConvo = conversations.find(c => c.conversation_id === idToSelect);
-        // Pass the full object (or null) to the state setter
-        selectConversationById(foundConvo || null); // <--- CORRECTED CALL
-
+        selectConversationById(foundConvo || null);
         if (!foundConvo && conversations.length > 0) {
             console.warn(`Conversation ID ${idToSelect} not found in loaded conversations.`);
             navigate('/chat', { replace: true });
         }
     } else {
-        selectConversationById(null); // Clear selection if no ID in URL
+        selectConversationById(null);
     }
-  // selectConversationById comes from useChatState, which is stable due to useCallback in provider
   }, [conversationId, conversations, convosLoading, selectConversationById, navigate]);
 
-
-  // Handler for list clicks (this function will be passed to ConversationList)
-  // It will call the 'selectConversation' from context which handles navigation AND state.
   const handleSelectConversationInUI = (conversation: ConversationPreview) => {
-    // Use the context's main selectConversation which also navigates
-    // This line was: navigate(`/chat/${conversation.conversation_id}`); which is now done by selectConversation from context
-    selectConversation(conversation); // This function from context now also handles navigation
-
+    selectConversation(conversation);
     if (typeof window !== "undefined" && window.innerWidth < MOBILE_BREAKPOINT) {
         onOpen();
     }
   };
 
+
   return (
     <div className="flex flex-row h-full sm:h-[calc(100vh-36px)] w-full sm:border sm:border-base-300 rounded-xl overflow-hidden shadow-lg sm:m-2 place-self-center">
       {/* Conversation List Container */}
       <div className={`
-          w-full sm:w-1/4 flex flex-col
+          w-full sm:w-1/4 min-w-64 flex flex-col
           ${selectedConversation && ''} {/* Keep mobile hide logic */}
       `}>
         <ConversationList
-            onSelectConversation={handleSelectConversationInUI} // <--- Pass this specific handler
+            onSelectConversation={handleSelectConversationInUI}
             selectedConversationId={selectedConversation?.conversation_id || null}
         />
       </div>
 
       {/* Chat Window Container */}
-      <div className="flex-grow flex-col bg-base-100 hidden sm:flex"> {/* Keep desktop show logic */}
+      <div className="flex-grow flex-col bg-base-100 hidden sm:flex">
         {selectedConversation ? (
-          <ChatWindow conversation={selectedConversation} />
+          // FIX: Add a unique key to force a remount when the conversation changes
+          <ChatWindow 
+            key={selectedConversation.conversation_id} 
+            conversation={selectedConversation} 
+          />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center text-neutral-500 p-6 text-center">
             <IconMessageCircle2 size={64} strokeWidth={1.5} className="mb-4 text-neutral-400" />
@@ -88,7 +82,11 @@ export const ChatLayout: React.FC = () => {
                 </Button>
                 <DrawerBody className="p-0 h-full">
                   {selectedConversation && (
-                    <ChatWindow conversation={selectedConversation} />
+                    // FIX: Also add the key to the mobile view
+                    <ChatWindow 
+                      key={selectedConversation.conversation_id} 
+                      conversation={selectedConversation} 
+                    />
                   )}
                 </DrawerBody>
               </DrawerContent>
