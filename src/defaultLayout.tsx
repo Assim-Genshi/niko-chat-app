@@ -10,12 +10,12 @@ import { Profile } from "./types"; // <--- IMPORT
 
 export default function DefaultLayout() {
   const { user, session, loading: authLoading } = useAuth();
-  const [isMobileView, setIsMobileView] = useState(window.innerWidth <= 1024);
+  const [isMobileView, setIsMobileView] = useState(window.innerWidth <= 768);
   const [showSetupModal, setShowSetupModal] = useState(false);
   const [profileKey, setProfileKey] = useState(0); // To force profile refetch/re-check
 
   useEffect(() => {
-    const handleResize = () => setIsMobileView(window.innerWidth <= 1024);
+    const handleResize = () => setIsMobileView(window.innerWidth <= 768);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -52,9 +52,9 @@ export default function DefaultLayout() {
 
   return (
     <>
-      <div className="flex flex-row w-full max-h-auto sm:min-h-screen sm:max-h-screen bg-base-200 overflow-hidden">
+      <div className="flex flex-row w-full max-h-auto md:min-h-screen md:max-h-screen bg-base-200 overflow-hidden">
         {!isMobileView && <Navbar />}
-        <div className="flex w-full justify-center bg-base-100 sm:border-base-300 sm:border rounded-none sm:rounded-2xl overflow-hidden sm:overflow-scroll my-0 mr-0 sm:my-2 sm:mr-2">
+        <div className="flex w-full justify-center bg-base-100 md:border-base-300 md:border rounded-none md:rounded-2xl overflow-hidden md:overflow-scroll my-0 mr-0 md:my-2 md:mr-2 pb-16 md:pb-0">
           <main className="flex justify-center w-full h-fit overflow-visible">
             <Outlet />
           </main>

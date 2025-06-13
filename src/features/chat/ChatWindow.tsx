@@ -275,7 +275,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversation }) => {
         <Button
           isIconOnly
           onPress={() => scrollToBottom('smooth')}
-          className="absolute bottom-20 right-6 z-20 rounded-full shadow-lg bg-base-content/60 backdrop-blur-xl text-base-100"
+          className="absolute bottom-20 right-6 z-20 rounded-full shadow-lg shadow-base-content bg-base-100 text-base-content border-t border-base-300/80"
           aria-label="Scroll to bottom"
         >
           <ArrowDownIcon className='w-4 h-4' />
@@ -301,14 +301,14 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversation }) => {
             type="submit"
             isIconOnly
             color="primary"
-            size="md"
+            size="sm"
             variant="solid"
             isDisabled={!newMessage.trim()}
             aria-label="Send message"
             radius='full'
             className="flex-shrink-0"
           >
-            <PaperAirplaneIcon className='w-6 h-6' />
+            <PaperAirplaneIcon className='w-4 h-4' />
           </Button>
         </form>
       </div>

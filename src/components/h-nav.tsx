@@ -7,7 +7,8 @@ import { supabase } from '../supabase/supabaseClient';
 import { useFriends } from '../features/friends/useFriends';
 
 //-----HeroUI-----
-import { addToast, 
+import { 
+  addToast, 
   Dropdown,
   DropdownTrigger,
   DropdownMenu,
@@ -24,7 +25,6 @@ import {
   Cog6ToothIcon,
   UserGroupIcon
 } from "@heroicons/react/24/solid";
-import { ThemeToggle } from "./ThemeSwitcher";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -76,7 +76,7 @@ const Navbar = () => {
   ];
 
   const displayName = profileData?.username || authUser?.user_metadata?.display_name || authUser?.user_metadata?.username || authUser?.email?.split('@')[0] || "User";
-  const profilePicUrl = authUser?.user_metadata?.profilePic || undefined;
+  const profilePicUrl = profileData?.avatar_url || authUser?.user_metadata?.profilePic || "/profile/default-avatar.jpg";
 
   const handleLogout = async () => {
     try {
@@ -109,10 +109,10 @@ const Navbar = () => {
       bg-base-200 flex flex-col transition-[width] duration-300 ease-in-out p-4
       ${isMobile || isCollapsed ? "w-20" : "w-64"}
     `}>
-      <div onClick={() => navigate('/')} className="flex items-center gap-3 py-4 cursor-pointer overflow-hidden">
+      <div onClick={() => navigate('/')} className="flex items-center gap-3 pb-4 cursor-pointer overflow-hidden">
         <Logo className="w-11 h-11 shrink-0 text-base-content" />
         <div className={`transition-all duration-300 ${isMobile || isCollapsed ? "opacity-0 w-0 blur-md" : "opacity-100 w-auto"}`}>
-          <h1 className="text-lg text-base-content font-bold whitespace-nowrap">NikoChat</h1>
+          <h1 className="text-lg text-base-content font-bold whitespace-nowrap">ChataMata</h1>
         </div>
       </div>
 

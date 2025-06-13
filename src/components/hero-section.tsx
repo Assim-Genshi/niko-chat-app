@@ -5,6 +5,7 @@ import { AnimatedGroup } from './ui/animated-group'
 import { HeroHeader } from './header'
 import { Link, Image, Button } from '@heroui/react';
 import { useNavigate } from "react-router-dom";
+import { ThemedImage } from './ThemedImage'
 
 const transitionVariants = {
     item: {
@@ -32,7 +33,7 @@ export default function HeroSection() {
     return (
         <>
             <HeroHeader />
-            <main className="overflow-hidden">
+            <main className="z-4">
                 <div
                     aria-hidden
                     className="absolute inset-0 isolate hidden opacity-65 contain-strict lg:block">
@@ -166,20 +167,12 @@ export default function HeroSection() {
                                     aria-hidden
                                     className="bg-linear-to-b to-background absolute inset-0 z-10 from-transparent from-35%"
                                 />
-                                <div className="inset-shadow-2xs ring-background dark:inset-shadow-white/20 bg-background relative mx-auto max-w-6xl overflow-hidden rounded-2xl border shadow-lg shadow-zinc-950/15 ring-1">
-                                    <img
-                                        className="bg-background aspect-15/8 relative hidden rounded-2xl dark:block"
-                                        src="/mail2-light.png"
-                                        alt="dark app screen"
-                                        width="2700"
-                                        height="1440"
-                                    />
-                                    <img
-                                        className="z-2 border-border/25 aspect-15/8 relative rounded-2xl border dark:hidden"
-                                        src="/mail2.png"
-                                        alt="light app screen"
-                                        width="2700"
-                                        height="1440"
+                                <div className="inset-shadow-2xs w-full ring-background dark:inset-shadow-white/20 bg-background relative mx-auto max-w-6xl overflow-hidden rounded-2xl border shadow-lg shadow-zinc-950/15 ring-1">
+                                    <ThemedImage 
+                                    alt='light and dark app screen'
+                                    darkSrc='/mail2.png'
+                                    lightSrc='/mail2-light.png'
+                                    className=''
                                     />
                                 </div>
                             </div>

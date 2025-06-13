@@ -4,11 +4,12 @@ import { useProfilePageLogic } from './ProfilePageLogic'; // You'll extend this 
 import { useNavigate } from "react-router-dom";
 import clsx from 'clsx';
 
-import { IconCopy, IconCheck, IconUserEdit, IconSettings } from '@tabler/icons-react'; // Added IconUserEdit
+import { IconCopy, IconCheck } from '@tabler/icons-react'; // Added IconUserEdit
 import {
   PencilSquareIcon,
   CloudArrowUpIcon,
-  Cog6ToothIcon, // Kept for settings
+  Cog6ToothIcon,
+  PencilIcon
 } from "@heroicons/react/24/solid";
 import {
   Button,
@@ -139,13 +140,10 @@ const ProfilePage: React.FC = () => {
 
 
   return (
-    <div className="container h-full max-w-2xl p-4 space-y-4 bg-base-100 overflow-y-auto"> {/* Changed to overflow-y-auto */}
-      <div className='w-full justify-between flex items-center space-x-4'>
+    <div className="container h-full max-w-2xl pb-4 pr-4 pl-4 pt-0 space-y-4 bg-base-100 overflow-y-auto"> {/* Changed to overflow-y-auto */}
+      <div className='w-full justify-between md:hidden flex items-center space-x-4 mt-2'>
         <ThemeToggle/>
         <div className="flex items-center space-x-2">
-          <Button variant="light" color="default" isIconOnly onPress={openEditDetailsModal} aria-label="Edit profile details">
-            <IconUserEdit className="w-6 h-6" />
-          </Button>
           <Button variant="light" color="default" isIconOnly onPress={() => navigate('/settings')} aria-label="Settings">
             <Cog6ToothIcon className='w-6 h-6'/>
           </Button>
@@ -209,6 +207,12 @@ const ProfilePage: React.FC = () => {
             </div>
           </Tooltip>
         )}
+      </div>
+
+      <div className='w-full justify-between flex items-center space-x-4'>
+        <Button className="w-full" radius='full' variant="solid" color="primary" isIconOnly onPress={openEditDetailsModal} aria-label="Edit profile details">
+            <PencilIcon className="w-6 h-6" />
+          </Button>
       </div>
 
       {/* About Section */}
