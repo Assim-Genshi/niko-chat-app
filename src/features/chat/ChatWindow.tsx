@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useMessages } from './useMessages';
-import { ConversationPreview } from './useConversations';
+import { ConversationPreview } from '../../types';
 import { Button, Input, Avatar, Skeleton, ScrollShadow } from '@heroui/react';
 import { ArrowDownIcon, PaperAirplaneIcon, CheckIcon } from '@heroicons/react/24/solid';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSoundSettingsStore } from '../../lib/useSoundSettingsStore';
 import { usePresence } from '../../contexts/PresenceContext';
 import { useProfilePreview } from '../../contexts/ProfilePreviewContext';
-import { Profile } from '../../types';
+import { Profile,  } from '../../types';
 import { supabase } from '../../supabase/supabaseClient';
 import { PlanBadge } from '../../components/PlanBadge'; // Import it
 
