@@ -1,3 +1,4 @@
+//src/components/mobilenav.tsx
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useProfilePageLogic } from '../pages/profile/ProfilePageLogic';

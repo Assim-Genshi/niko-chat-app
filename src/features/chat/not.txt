@@ -1,0 +1,4 @@
+// src/features/chat/useMessages.ts
+
+// Inside the select statements in both fetchInitialMessages and loadMoreMessages...
+.select(`*, sender:profiles(id, username, avatar_url, plan), ...`) // <-- Add plan

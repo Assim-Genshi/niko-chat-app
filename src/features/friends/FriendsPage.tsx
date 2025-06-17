@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useFriends } from './useFriends'; // Your existing hook
 import { useConversations, ConversationPreview } from '../chat/useConversations'; // Adjust path
 import { usePresence } from '../../contexts/PresenceContext'; // Adjust path to your PresenceContext
-import { Button, Input, Card, Spinner, Avatar, Tabs, Tab, Chip } from '@heroui/react';
+import { Button, Input, Card, Spinner, Avatar, Tabs, Tab, Chip, addToast } from '@heroui/react';
 import { UserPlusIcon, MagnifyingGlassIcon, ChatBubbleOvalLeftIcon } from '@heroicons/react/24/solid'; // Added Chat icon
 import { useNavigate } from 'react-router-dom'; // <--- Import useNavigate
 import { useProfilePreview } from '../../contexts/ProfilePreviewContext'; // <--- IMPORT
 import { Profile } from '@/types';
+import { PlanBadge } from '../../components/PlanBadge'; // Import it
 
 const FriendsPage: React.FC = () => {
   const {
@@ -55,8 +56,12 @@ const FriendsPage: React.FC = () => {
     if (dmConversation) {
         navigate(`/chat/${dmConversation.conversation_id}`);
     } else {
-        alert(`No DM found with ${friend.username}. Need to implement 'get or create'.`);
-    }
+        addToast({
+            title: "Conversation Not Found",
+            description: `You can start a new chat with ${friend.username} from their profile.`,
+            color: "default"
+        });
+        }
   };
 
   const renderUserCard = (
@@ -82,8 +87,11 @@ const FriendsPage: React.FC = () => {
                         <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full ring-2 ring-base-200 bg-success-500" />
                     )}
                 </div>
-                <span className='truncate font-medium text-base-content'>{user.username || user.full_name || 'User'}</span>
-            </div>
+                    <div className="flex items-center gap-2"> {/* Wrap in a flex container */}
+                        <span className='truncate font-medium ...'>{user.username || 'User'}</span>
+                        <PlanBadge plan={user.plan} className="w-4 h-4" />
+                    </div>
+                </div>
             <div className='flex-shrink-0'>
                 {actions}
             </div>

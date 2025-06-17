@@ -1,3 +1,4 @@
+//src/components/ProfileSetupModal.tsx
 import React, { useState, useEffect, ChangeEvent } from 'react';
 import { supabase } from '../supabase/supabaseClient'; // Adjust
 import { useAuth } from '../contexts/AuthContext'; // Adjust

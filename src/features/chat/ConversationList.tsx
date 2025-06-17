@@ -1,9 +1,10 @@
 import React from 'react';
-import { useConversations, ConversationPreview } from './useConversations';
+import { useConversations } from './useConversations';
 import { usePresence } from '../../contexts/PresenceContext';
-import { Input, Skeleton, Card, Badge, Avatar, Button } from '@heroui/react';
-// No need for useNavigate here, the parent handles it via the prop
+import { Input, Skeleton, Card, Badge, Avatar, Button, Chip } from '@heroui/react';
+import { useNavigate } from 'react-router-dom';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/solid';
+import { ConversationPreview } from '../../types'; // Your existing type
 
 interface ConversationListProps {
   onSelectConversation: (conversation: ConversationPreview) => void; // This will trigger navigation
@@ -47,25 +48,32 @@ function formatMessageDate(dateString?: string): string {
 }
 
 export const ConversationList: React.FC<ConversationListProps> = ({ onSelectConversation, selectedConversationId }) => {
-  const { conversations, loading, error } = useConversations();
+  const { 
+    conversations, 
+    loading, 
+    error,
+    searchQuery,
+    setSearchQuery 
+  } = useConversations();
+
   const { onlineUsers } = usePresence();
-  // We removed useNavigate, as the parent ChatLayout will handle navigation
-  // when onSelectConversation is called.
+  const navigate = useNavigate();
 
   return (
     <div className="w-full sm:border-r sm:border-base-300 p-2 h-full flex space-y-3 flex-col">
       {/* ... (Keep Header and Search/Filter UI) ... */}
        <h2 className="w-full text-2xl font-bold p-3 sticky top-0 z-10">Chats</h2>
        <Input
-          size='sm'
-          variant='flat'
-          radius='full'
-          placeholder="Search by for someone?"
-          className="w-full"
-          isClearable
-          color='default'
-          startContent={<MagnifyingGlassIcon className='w-5 h-5 text-default-400'/>}
-      />
+         size='sm'
+         variant='flat'
+         radius='full'
+         placeholder="Search chats..."
+         className="w-full"
+         isClearable
+         value={searchQuery} // Control the input value
+         onValueChange={setSearchQuery} // Update state on change
+         startContent={<MagnifyingGlassIcon className='w-5 h-5 text-default-400'/>}
+       />
       <div className='flex-row w-full space-x-2'>
         <Button variant='flat' size='sm' radius='full' color='default' className='w-fit font-semibold' >all</Button>
         <Button variant='flat' size='sm' radius='full' color='default' className='w-fit font-semibold' >groups</Button>
@@ -86,7 +94,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({ onSelectConv
             <>
               <div className='w-full flex flex-col items-center justify-center text-base-content p-6 text-center'>
                 <p>no one to chat with yet</p>
-                <Button onPress={() => onSelectConversation({} as ConversationPreview)}>invite friends</Button> 
+                <Button onPress={() => navigate('/friends')}>invite friends</Button> 
               </div>
             </>
           )}
@@ -126,16 +134,28 @@ export const ConversationList: React.FC<ConversationListProps> = ({ onSelectConv
                           </Badge>
                         </div>
                         <div className="flex-grow gap-0 min-w-0">
-                          <p className={`font-semibold text-md truncate `}>
-                            {convo.display_name || 'Chat'}
-                          </p>
+                          <div className="flex justify-between items-center"> {/* NEW WRAPPER */}
+                            <p className={`font-semibold text-md truncate`}>
+                              {convo.display_name || 'Chat'}
+                            </p>
+                            
+                          </div>
                           <p className={`text-sm truncate`}>
                             {'last: ' + convo.latest_message_content || 'No messages yet...'}
                           </p>
+                          
+                          
                         </div>
-                        <p className='text-xs text-base-content/40 self-start'>
-                          {formatMessageDate(convo.latest_message_created_at || '')}
-                        </p>
+                        <div className='flex flex-col justify-end items-end space-y-1'>
+                          <p className='text-xs text-base-content/40 self-start'>
+                            {formatMessageDate(convo.latest_message_created_at || '')}
+                          </p>
+                          {/* NEW: Unread count badge */}
+                            {convo.unread_count > 0 && (
+                              <Chip className='aspect-squire' size="sm">{convo.unread_count}</Chip>
+                            )}
+                        </div>
+                      
                       </div>
                     </Card>
                   </li>

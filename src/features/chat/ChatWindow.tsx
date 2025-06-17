@@ -2,14 +2,14 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useMessages } from './useMessages';
 import { ConversationPreview } from './useConversations';
 import { Button, Input, Avatar, Skeleton, ScrollShadow } from '@heroui/react';
-import { ArrowDownIcon, PaperAirplaneIcon } from '@heroicons/react/24/solid';
+import { ArrowDownIcon, PaperAirplaneIcon, CheckIcon } from '@heroicons/react/24/solid';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSoundSettingsStore } from '../../lib/useSoundSettingsStore';
 import { usePresence } from '../../contexts/PresenceContext';
 import { useProfilePreview } from '../../contexts/ProfilePreviewContext';
 import { Profile } from '../../types';
 import { supabase } from '../../supabase/supabaseClient';
-
+import { PlanBadge } from '../../components/PlanBadge'; // Import it
 
 interface ChatWindowProps {
   conversation: ConversationPreview;
@@ -83,6 +83,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversation }) => {
           joined_at: null,
           updated_at: null,
           profile_setup_complete: false,
+          plan: "free",
         };
         viewProfile(partialProfile);
     }
@@ -218,8 +219,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversation }) => {
             />
         </div>
         <div className="flex flex-col">
+          <div className="flex items-center gap-2"> {/* Wrap in a flex container */}
             <h2 className="text-base font-semibold text-base-content">{conversation.display_name}</h2>
-            {isOtherUserOnline ? <p className='text-xs text-green-500'>Online</p> : <p className='text-xs text-gray-400'>Offline</p> }
+            {/* The 'plan' will come from the updated useConversations hook */}
+            <PlanBadge plan={(conversation as any).other_participant_plan} />
+          </div>           
+           {isOtherUserOnline ? <p className='text-xs text-green-500'>Online</p> : <p className='text-xs text-gray-400'>Offline</p> }
         </div>
       </div>
 
@@ -261,9 +266,15 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversation }) => {
                  }`}
                >
                   <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
-                  <p className={`text-xs mt-1.5 text-right ${msg.sender_id === userId ? 'text-white/60' : 'text-base-content/60'}`}>
-                      {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
-                  </p>
+                  <div className="flex items-center justify-end mt-1.5"> {/* NEW WRAPPER for time + receipt */}
+                    <p className={`text-xs ${msg.sender_id === userId ? 'text-white/60' : 'text-base-content/60'}`}>
+                        {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
+                    </p>
+                    {/* NEW: Read receipt logic */}
+                    {msg.sender_id === userId && msg.read_at && (
+                      <CheckIcon className="w-4 h-4 ml-1 text-white/80" />
+                    )}
+                  </div>
                </div>
             </div>
           </div>
@@ -301,14 +312,14 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversation }) => {
             type="submit"
             isIconOnly
             color="primary"
-            size="sm"
+            size="md"
             variant="solid"
             isDisabled={!newMessage.trim()}
             aria-label="Send message"
             radius='full'
             className="flex-shrink-0"
           >
-            <PaperAirplaneIcon className='w-4 h-4' />
+            <PaperAirplaneIcon className='w-6 h-6' />
           </Button>
         </form>
       </div>

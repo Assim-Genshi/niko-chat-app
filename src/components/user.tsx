@@ -1,4 +1,4 @@
-// src/components/Navbar.tsx
+// src/components/user.tsx
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabase/supabaseClient';

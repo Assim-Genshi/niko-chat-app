@@ -7,12 +7,17 @@ import { ProfilePreviewDrawer } from "./components/ui/ProfilePreviewDrawer";
 import { useAuth } from "./contexts/AuthContext"; // <--- IMPORT
 import { supabase } from "./supabase/supabaseClient"; // <--- IMPORT
 import { Profile } from "./types"; // <--- IMPORT
+import { ProfileSetupModal } from './components/ProfileSetupModal'; // 1. Import the modal
 
 export default function DefaultLayout() {
   const { user, session, loading: authLoading } = useAuth();
   const [isMobileView, setIsMobileView] = useState(window.innerWidth <= 768);
   const [showSetupModal, setShowSetupModal] = useState(false);
   const [profileKey, setProfileKey] = useState(0); // To force profile refetch/re-check
+  const handleProfileSetupComplete = () => {
+    setShowSetupModal(false);
+    setProfileKey(prev => prev + 1); // 2. Force a refresh of the profile check
+  };
 
   useEffect(() => {
     const handleResize = () => setIsMobileView(window.innerWidth <= 768);
@@ -24,6 +29,8 @@ export default function DefaultLayout() {
     if (authLoading || !user) { // Wait for auth to load and user to be available
       return;
     }
+
+    
 
     const checkProfileSetup = async () => {
       const { data, error } = await supabase
@@ -64,6 +71,16 @@ export default function DefaultLayout() {
       {user && ( // Only render modal if user is loaded
         <ProfilePreviewDrawer />
       )}
+      {showSetupModal && (
+        <ProfileSetupModal
+          isOpen={showSetupModal}
+          onClose={() => setShowSetupModal(false)}
+          onProfileSetupComplete={handleProfileSetupComplete}
+        />
+      )}
+      
+      {user && <ProfilePreviewDrawer />}
+
     </>
   );
 }

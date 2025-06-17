@@ -1,10 +1,10 @@
-// src/components/ui/ProfilePreviewDrawer.tsx (or your preferred path)
+// src/components/ui/ProfilePreviewDrawer.tsx
 import React from 'react';
 import { useProfilePreview } from '../../contexts/ProfilePreviewContext'; // Adjust path
 import { Drawer, DrawerContent, DrawerBody, Button, Avatar, Badge, Image, Card, CardBody } from '@heroui/react'; // Added Badge
-import { Profile } from '../../types'; // Adjust path
 import { usePresence } from '../../contexts/PresenceContext'; // To show online status
 import { XMarkIcon } from '@heroicons/react/24/solid';
+import { PlanBadge } from '../PlanBadge'; // Import it
 
 export const ProfilePreviewDrawer: React.FC = () => {
   const { isPreviewOpen, profileData, closeProfilePreview } = useProfilePreview();
@@ -73,6 +73,7 @@ export const ProfilePreviewDrawer: React.FC = () => {
         {/* Display Name (Full Name) */}
           <div  className="flex w-fit items-center space-x-2 cursor-pointer hover:opacity-70 transition-opacity">
             <h1 className="text-2xl text-base-content md:text-3xl font-bold capitalize">{profileData.username || 'User'}</h1>
+            <PlanBadge plan={profileData.plan} />
             <div className="relative w-5 h-5 text-base-content/70">
             </div>
           </div>

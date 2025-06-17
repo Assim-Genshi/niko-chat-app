@@ -40,11 +40,11 @@ export const useFriends = () => {
           action_user_id,
           user_one:profiles!friendships_user_one_id_fkey(
             id, username, full_name, avatar_url, banner_url, 
-            description, chatamata_id, joined_at, updated_at, profile_setup_complete
+            description, chatamata_id, joined_at, updated_at, profile_setup_complete, plan
           ),
           user_two:profiles!friendships_user_two_id_fkey(
             id, username, full_name, avatar_url, banner_url, 
-            description, chatamata_id, joined_at, updated_at, profile_setup_complete
+            description, chatamata_id, joined_at, updated_at, profile_setup_complete, plan
           )
         `)
         .or(`user_one_id.eq.${user.id},user_two_id.eq.${user.id}`);
@@ -76,6 +76,7 @@ export const useFriends = () => {
             joined_at: friendProfileData.joined_at || null,
             updated_at: friendProfileData.updated_at || null,
             profile_setup_complete: friendProfileData.profile_setup_complete || false,
+            plan: friendProfileData.plan || null,
           };
 
           const isRequester = item.action_user_id === user.id;
@@ -123,7 +124,7 @@ export const useFriends = () => {
       const { data, error: searchError } = await supabase
         .from('profiles')
         .select(`
-            id, username, full_name, avatar_url, banner_url, 
+            id, username, full_name, avatar_url, banner_url, plan, 
             description, chatamata_id, joined_at, updated_at, profile_setup_complete
         `) // <--- UPDATED: Select all fields
         .ilike('username', `%${query}%`) // Or search by full_name, chatamata_id too if desired

@@ -1,3 +1,4 @@
+//src/components/SignUp.tsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { addToast } from "@heroui/react";

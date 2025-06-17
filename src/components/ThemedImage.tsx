@@ -1,3 +1,4 @@
+//src/components/ThemedImage.tsx
 import { useThemeStore } from "../lib/useThemeStore";
 
 interface ThemedImageProps {

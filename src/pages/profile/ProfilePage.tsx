@@ -3,6 +3,7 @@ import Cropper from 'react-easy-crop';
 import { useProfilePageLogic } from './ProfilePageLogic'; // You'll extend this hook
 import { useNavigate } from "react-router-dom";
 import clsx from 'clsx';
+import { PlanBadge } from '../../components/PlanBadge'; // Import it
 
 import { IconCopy, IconCheck } from '@tabler/icons-react'; // Added IconUserEdit
 import {
@@ -188,6 +189,7 @@ const ProfilePage: React.FC = () => {
         <Tooltip content={copied ? "Copied!" : "Copy Full Name"}>
           <div onClick={handleCopyDisplayName} className="flex w-fit items-center space-x-2 cursor-pointer hover:opacity-70 transition-opacity">
             <h1 className="text-2xl text-base-content md:text-3xl font-bold capitalize">{displayName}</h1>
+            {profileData && <PlanBadge plan={profileData.plan} />}
             <div className="relative w-5 h-5 text-base-content/70">
               <IconCopy className={clsx('absolute inset-0 transition-all', copied ? 'opacity-0 scale-0' : 'opacity-100 scale-100')} />
               <IconCheck className={clsx('absolute inset-0 transition-all text-success-500', copied ? 'opacity-100 scale-100' : 'opacity-0 scale-0')} />

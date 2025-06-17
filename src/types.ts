@@ -13,6 +13,7 @@ export interface Profile {
   joined_at: string | null;        // <-- Ensure this is here (TIMESTAMPTZ from DB)
   updated_at: string | null;       // <-- Ensure this is here (TIMESTAMPTZ from DB)
   profile_setup_complete: boolean;
+  plan: 'free' | 'verified' | 'premium' | 'vip'; // <-- ADD THIS LINE
   // Add more fields as needed
 }
 
@@ -20,26 +21,27 @@ export interface Profile {
 
 // Type for a message
 export interface Message {
-    id: number;
-    sender_id: string;
-    conversation_id: number;
-    content: string;
-    created_at: string;
-    sender: Profile; // We'll often want to join with sender's profile
+  id: number;
+  sender_id: string;
+  conversation_id: number;
+  content: string;
+  created_at: string;
+  sender: Profile;
+  // NEW: Add a field to know if the message has been read by others
+  read_at: string | null; 
 }
 
 // Type for a conversation
-export interface Conversation {
-    id: number;
-    is_group: boolean;
-    created_at: string;
-    group_name: string | null;
-    group_avatar_url: string | null;
-    created_by: string | null;
-    participants: Participant[]; // Include participants
-    latest_message?: Message | null; // Optional: for previews
-    display_name?: string; // For DMs, the other user's name
-    display_avatar?: string; // For DMs, the other user's avatar
+export interface ConversationPreview {
+  conversation_id: number;
+  is_group: boolean;
+  display_name: string | null;
+  display_avatar: string | null;
+  latest_message_content: string | null;
+  latest_message_created_at: string | null;
+  other_participant_id: string | null;
+  group_name: string | null;
+  unread_count: number; // <-- NEW
 }
 
 // Type for a participant

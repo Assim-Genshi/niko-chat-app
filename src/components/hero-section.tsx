@@ -1,3 +1,4 @@
+//src/components/hero-section.tsx
 import React from 'react'
 import { ArrowRight } from 'lucide-react'
 import { TextEffect } from './ui/text-effect'
