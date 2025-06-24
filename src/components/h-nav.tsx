@@ -24,7 +24,8 @@ import {
   ChatBubbleOvalLeftIcon,
   BellIcon,
   Cog6ToothIcon,
-  UserGroupIcon
+  UserGroupIcon,
+  ChevronUpDownIcon
 } from "@heroicons/react/24/solid";
 
 const Navbar = () => {
@@ -36,6 +37,13 @@ const Navbar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const incomingCount = incomingRequests?.length || 0;
+
+  const [clicked, setClicked] = useState(false);
+
+  const handleClick = () => {
+    setClicked(true);
+    // optionally also reset incomingCount if needed
+  };
 
   const navLinks = [
     {
@@ -52,21 +60,21 @@ const Navbar = () => {
     },
     {
       to: "/notifications",
-      label: "Notifications",
-      icon: ( // <-- Use Badge for icon
-        <Badge
-          content={incomingCount > 9 ? '9+' : incomingCount}
-          color="danger"
-          shape="circle"
-          size="sm"
-          isInvisible={incomingCount === 0}
-          showOutline={false}
-          className="flex items-center justify-center"
-        >
-          <BellIcon className="w-6 h-6 shrink-0" />
-        </Badge>
-      ),
-      requiresAuth: true,
+  label: "Notifications",
+  icon: (
+    <Badge
+      content={incomingCount > 9 ? '9+' : incomingCount}
+      color="danger"
+      shape="circle"
+      size="sm"
+      isInvisible={incomingCount === 0 || clicked}
+      showOutline={false}
+      className="flex items-center justify-center"
+    >
+      <BellIcon className="w-6 h-6 shrink-0" onClick={handleClick} />
+    </Badge>
+  ),
+  requiresAuth: true,
     },
     {
       to: "/profile",
@@ -76,7 +84,7 @@ const Navbar = () => {
     },
   ];
 
-  const displayName = profileData?.username || authUser?.user_metadata?.display_name || authUser?.user_metadata?.username || authUser?.email?.split('@')[0] || "User";
+  const displayName = authUser?.user_metadata?.name || authUser?.user_metadata?.display_name || authUser?.user_metadata?.username || authUser?.email?.split('@')[0] || "User";
   const profilePicUrl = profileData?.avatar_url || authUser?.user_metadata?.profilePic || "/profile/default-avatar.jpg";
 
   const handleLogout = async () => {
@@ -126,7 +134,7 @@ const Navbar = () => {
         </button>
       )}
 
-      <nav className="flex-1 flex flex-col gap-2 mt-2">
+      <nav className="flex-1 flex flex-col gap-1 mt-2">
         {navLinks
           .filter(link => !link.requiresAuth || session)
           .map(({ to, label, icon }) => ( 
@@ -134,15 +142,15 @@ const Navbar = () => {
               to={to}
               key={to} // Use 'to' as key for better stability
               className={({ isActive }: { isActive: boolean }) =>
-                `flex items-center gap-3 px-3 py-2 rounded-2xl hover:bg-base-100/60 transition-colors duration-300 overflow-hidden ${
-                  isActive ? "bg-base-content text-base-100 hover:bg-base-content" : "text-base-content"
-                }`
+                `flex items-center gap-2 px-2 py-2 rounded-2xl transition-all duration-300 overflow-hidden ${
+                  isActive ? "bg-base-300 text-base-content/100 hover:bg-base-300" : "text-base-content/60 hover:bg-base-100/20"
+                } ${ isCollapsed ? "px-3" : "" }`
               }
             >
-              <div className="flex items-center justify-center w-6 h-6 shrink-0"> {/* Ensure icon wrapper has fixed size */}
+              <div className="flex items-center justify-center w-6 h-6 shrink-0 "> {/* Ensure icon wrapper has fixed size */}
                 {icon}
               </div>
-              <span className={`transition-all duration-300 ${isMobile || isCollapsed ? "opacity-0 w-0 blur-md" : "opacity-100 w-auto"} whitespace-nowrap`}>
+              <span className={` ${isMobile || isCollapsed ? "opacity-0 w-0 blur-md" : "opacity-100 w-auto"} transition-all duration-300 whitespace-nowrap`}>
                 {label}
               </span>
             </NavLink>
@@ -154,12 +162,19 @@ const Navbar = () => {
       {session && (
            <Dropdown>
               <DropdownTrigger>
-                <div className={`flex items-center gap-3 p-2 bg-base-300 hover:bg-base-300/60 rounded-2xl transition-all duration-300 cursor-pointer ${isMobile || isCollapsed ? "justify-start p-1" : ""}`}>
-                  <Avatar className="shrink-0 overflow-hidden" src={profilePicUrl} alt="Profile" />
-                  <div className={`flex flex-col items-start overflow-hidden transition-all duration-300 ${isMobile || isCollapsed ? "w-0 opacity-0 blur-md" : "w-40 opacity-100"}`}>
-                    <h1 className="font-medium text-sm text-base-content truncate w-fit">{displayName}</h1>
-                    <p className="text-xs text-base-content/70 truncate w-fit">{authUser?.email || "not provided"}</p>
+                <div className={`flex items-center  gap-3 p-2 bg-base-100 hover:bg-base-300/60 rounded-2xl transition-all duration-300 cursor-pointer ${isMobile || isCollapsed ? "justify-start px-2 py-1" : ""}`}>
+                  <Avatar size="sm" className='shrink-0 overflow-hidden' src={profilePicUrl} alt="Profile" />
+                  <div className={`flex flex-row w-full gap-2 justify-between items-center overflow-hidden transition-all duration-300 ${isMobile || isCollapsed ? "w-0 opacity-0 blur-md" : "w-40 opacity-100"}`}>
+                    <div>
+                      <h1 className="font-medium text-sm text-base-content truncate w-fit">{displayName}</h1>
+                      <p className="text-xs text-base-content/70 truncate w-fit">{authUser?.email || "not provided"}</p>
+                    </div>
+
+                    <div>
+                      <ChevronUpDownIcon className={` w-4 h-4 shrink-0`} />
+                    </div>
                   </div>
+                  
                 </div>
               </DropdownTrigger>
               <DropdownMenu aria-label="User Actions">

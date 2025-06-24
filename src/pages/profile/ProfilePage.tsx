@@ -3,7 +3,6 @@ import Cropper from 'react-easy-crop';
 import { useProfilePageLogic } from './ProfilePageLogic'; // You'll extend this hook
 import { useNavigate } from "react-router-dom";
 import clsx from 'clsx';
-import { PlanBadge } from '../../components/PlanBadge'; // Import it
 
 import { IconCopy, IconCheck } from '@tabler/icons-react'; // Added IconUserEdit
 import {
@@ -28,6 +27,7 @@ import {
   Textarea // Assuming HeroUI has Textarea, otherwise use HTML
 } from "@heroui/react";
 import { ThemeToggle } from '../../components/ThemeSwitcher';
+import { PlanBadge } from '../../components/PlanBadge';
 
 const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
@@ -107,15 +107,7 @@ const ProfilePage: React.FC = () => {
   const bannerUpload = useFileDrop(handleBannerFileSelect);
 
   const [copied, setCopied] = useState(false);
-  const handleCopyDisplayName = async () => {
-    try {
-      await navigator.clipboard.writeText(displayName);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch (err) {
-      console.error('Copy failed', err);
-    }
-  };
+
   
   const [copiedChatamataId, setCopiedChatamataId] = useState(false);
   const handleCopyChatamataId = async () => {
@@ -157,7 +149,7 @@ const ProfilePage: React.FC = () => {
           <Image
             src={bannerUrl}
             alt="Banner"
-            className="w-full aspect-[3/1] h-full object-cover rounded-2xl z-10"
+            className="w-full h-full aspect-[3/1] object-cover rounded-2xl z-10"
           />
           <div
             className='absolute inset-0 flex items-center justify-center bg-base-100/30 z-20 backdrop-blur-sm opacity-0 hover:opacity-100 transition-opacity cursor-pointer rounded-2xl'
@@ -186,16 +178,10 @@ const ProfilePage: React.FC = () => {
 
       <div className="pt-8 md:pt-12 space-y-1"> {/* Added padding top for avatar overlap */}
         {/* Display Name (Full Name) */}
-        <Tooltip content={copied ? "Copied!" : "Copy Full Name"}>
-          <div onClick={handleCopyDisplayName} className="flex w-fit items-center space-x-2 cursor-pointer hover:opacity-70 transition-opacity">
+          <div className="flex w-fit items-end space-x-2 ">
             <h1 className="text-2xl text-base-content md:text-3xl font-bold capitalize">{displayName}</h1>
             {profileData && <PlanBadge plan={profileData.plan} />}
-            <div className="relative w-5 h-5 text-base-content/70">
-              <IconCopy className={clsx('absolute inset-0 transition-all', copied ? 'opacity-0 scale-0' : 'opacity-100 scale-100')} />
-              <IconCheck className={clsx('absolute inset-0 transition-all text-success-500', copied ? 'opacity-100 scale-100' : 'opacity-0 scale-0')} />
-            </div>
           </div>
-        </Tooltip>
 
         {/* Chatamata ID */}
         {profileData?.chatamata_id && (

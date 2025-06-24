@@ -2,11 +2,12 @@ import React, { useEffect } from 'react';
 import { ConversationList } from './ConversationList';
 import { ChatWindow } from './ChatWindow';
 import { useChatState } from '../../contexts/ChatStateContext';
-import { useConversations, ConversationPreview } from './useConversations';
+import { useConversations } from './useConversations';
 import { IconMessageCircle2 } from '@tabler/icons-react';
 import { Drawer, DrawerContent, DrawerBody, Button, useDisclosure } from "@heroui/react";
 import { XMarkIcon } from '@heroicons/react/24/solid';
 import { useParams, useNavigate } from 'react-router-dom';
+import { ConversationPreview } from '../../types';
 
 const MOBILE_BREAKPOINT = 768;
 
@@ -44,10 +45,10 @@ export const ChatLayout: React.FC = () => {
 
 
   return (
-    <div className="flex flex-row h-full sm:h-[calc(100vh-36px)] w-full sm:border sm:border-base-300 rounded-xl overflow-hidden shadow-lg sm:m-2 place-self-center">
+    <div className="flex flex-row h-full sm:h-[calc(100vh-18px)] w-full overflow-hidden place-self-center">
       {/* Conversation List Container */}
       <div className={`
-          w-full sm:w-1/4 min-w-64 flex flex-col
+          w-full sm:w-1/4 min-w-64 sm:max-w-80 flex flex-col
           ${selectedConversation && ''} {/* Keep mobile hide logic */}
       `}>
         <ConversationList

@@ -2,3 +2,122 @@
 
 // Inside the select statements in both fetchInitialMessages and loadMoreMessages...
 .select(`*, sender:profiles(id, username, avatar_url, plan), ...`) // <-- Add plan
+
+-----------------------------------------------------------------------------------------
+
+// src/features/chat/useConversations.ts
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { supabase } from '../../supabase/supabaseClient';
+import { useAuth } from '../../contexts/AuthContext';
+import { addToast } from "@heroui/react";
+import { ConversationPreview } from '../../types';
+
+export const useConversations = () => {
+  const { session, user } = useAuth();
+  const [conversations, setConversations] = useState<ConversationPreview[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // This function fetches the entire, up-to-date list.
+  // We will call this whenever a real-time event tells us something has changed.
+  const fetchAllConversations = useCallback(async () => {
+    if (!session) return;
+    
+    // We only set loading on the very first fetch
+    if (!conversations.length) {
+      setLoading(true);
+    }
+    setError(null);
+    
+    try {
+      const { data, error: rpcError } = await supabase.rpc('get_user_conversations');
+      if (rpcError) throw rpcError;
+      setConversations(data || []);
+    } catch (err: any) {
+      setError(err);
+      addToast({ title: "Error", description: `Failed to fetch conversations: ${err.message}`, color: "danger" });
+    } finally {
+      setLoading(false);
+    }
+  }, [session, conversations.length]); // depend on conversations.length to manage initial loading state
+
+  // Initial fetch when the hook mounts
+  useEffect(() => {
+    fetchAllConversations();
+  }, [fetchAllConversations]);
+
+
+  // --- The New, Reliable Real-Time Effect ---
+  useEffect(() => {
+    // Ensure we have a user before subscribing
+    if (!user) return;
+
+    // The callback for ANY relevant change is now simple: just refetch the list.
+    const handleUpdate = () => {
+      console.log('Realtime event received, refetching conversations...');
+      fetchAllConversations();
+    };
+
+    // Use a single, unique channel for all subscriptions in this hook
+    const channel = supabase.channel(`useConversations-${user.id}`);
+
+    channel
+      // 1. A new message is inserted in any of our conversations
+      .on('postgres_changes', 
+          { event: 'INSERT', schema: 'public', table: 'messages' }, 
+          handleUpdate
+      )
+      // 2. A message is read by us (to update unread count)
+      .on('postgres_changes', 
+          { event: 'INSERT', schema: 'public', table: 'message_read_statuses', filter: `user_id=eq.${user.id}` }, 
+          handleUpdate
+      )
+      // 3. A user profile changes (avatar, name, plan)
+      .on('postgres_changes', 
+          { event: 'UPDATE', schema: 'public', table: 'profiles' }, 
+          handleUpdate
+      )
+      // 4. We are added to a new conversation
+      .on('postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'participants', filter: `user_id=eq.${user.id}`},
+          handleUpdate
+      )
+      .subscribe((status, err) => {
+          if (status === 'SUBSCRIBED') {
+            console.log('Realtime channel for conversations is subscribed.');
+          }
+          if (status === 'CHANNEL_ERROR') {
+            console.error('Realtime channel error:', err);
+          }
+      });
+
+    // Cleanup function to remove the channel subscription when the component unmounts
+    return () => {
+      supabase.removeChannel(channel);
+    };
+
+  }, [user, fetchAllConversations]);
+
+
+  // Memoized filtering for search remains the same
+  const filteredConversations = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) {
+      return conversations;
+    }
+    return conversations.filter(convo =>
+      convo.display_name?.toLowerCase().includes(query)
+    );
+  }, [searchQuery, conversations]);
+
+
+  return {
+    conversations: filteredConversations,
+    loading,
+    error,
+    refetch: fetchAllConversations,
+    searchQuery,
+    setSearchQuery
+  };
+};

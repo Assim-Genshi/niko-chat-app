@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useFriends } from './useFriends'; // Your existing hook
-import { useConversations, ConversationPreview } from '../chat/useConversations'; // Adjust path
+import { useConversations } from '../chat/useConversations'; // Adjust path
 import { usePresence } from '../../contexts/PresenceContext'; // Adjust path to your PresenceContext
 import { Button, Input, Card, Spinner, Avatar, Tabs, Tab, Chip, addToast } from '@heroui/react';
 import { UserPlusIcon, MagnifyingGlassIcon, ChatBubbleOvalLeftIcon } from '@heroicons/react/24/solid'; // Added Chat icon

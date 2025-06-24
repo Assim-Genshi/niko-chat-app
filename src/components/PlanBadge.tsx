@@ -1,6 +1,6 @@
 // src/components/PlanBadge.tsx
 import React from 'react';
-import { Tooltip } from '@heroui/react';
+import { Chip } from '@heroui/react';
 import { CheckBadgeIcon, SparklesIcon, } from '@heroicons/react/24/solid';
 import { Profile } from '../types';
 
@@ -16,16 +16,13 @@ export const PlanBadge: React.FC<PlanBadgeProps> = ({ plan, className = 'w-5 h-5
 
   const badgeInfo = {
     verified: {
-      icon: <CheckBadgeIcon className={`${className} text-sky-500`} />,
-      label: 'Verified Account',
+      icon: <><Chip size='sm' color="primary" startContent={<CheckBadgeIcon className='w-4 h-4'/>} variant="flat" >Verified</Chip></>,
     },
     premium: {
-      icon: <SparklesIcon className={`${className} text-purple-500`} />,
-      label: 'Premium Member',
+      icon: <><Chip size='sm' color="secondary" startContent={<SparklesIcon className='w-4 h-' />} variant="flat">Premium</Chip></>,
     },
     vip: {
-      icon: <SparklesIcon className={`${className} text-yellow-500`} />,
-      label: 'VIP Member',
+      icon: <><Chip size='sm' color="warning" startContent={<SparklesIcon className='w-4 h-4' />} variant="flat">VIP</Chip></>,
     },
   };
 
@@ -36,8 +33,8 @@ export const PlanBadge: React.FC<PlanBadgeProps> = ({ plan, className = 'w-5 h-5
   }
 
   return (
-    <Tooltip content={badge.label} placement="top">
-      <span>{badge.icon}</span>
-    </Tooltip>
+   
+    <div>{badge.icon}</div>
+   
   );
 };

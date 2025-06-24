@@ -99,6 +99,7 @@ module.exports = {
         // Add custom themes here
       }
     }),
-    require("tailwindcss-animate")
+    require("tailwindcss-animate"),
+    require("tailwind-scrollbar-hide"),
   ]
 };

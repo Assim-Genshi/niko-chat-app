@@ -2,173 +2,376 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../../supabase/supabaseClient';
 import { useAuth } from '../../contexts/AuthContext';
-import { Message, Profile } from '../../types';
+import { Message } from '../../types';
 import { addToast } from "@heroui/react";
 
-const MESSAGES_PER_PAGE = 20;
+const MESSAGES_PER_PAGE = 30;
 
 export const useMessages = (conversationId: number | null) => {
-  const { session } = useAuth();
-  const user = session?.user;
-
+  const { session, user } = useAuth();
+  
   const [messages, setMessages] = useState<Message[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
   const pageRef = useRef(0);
-  // We no longer need the participants map in state, as we join profiles directly.
+  const channelRef = useRef<any>(null);
 
-  // --- Send Message (this can stay outside as it's returned) ---
-  const sendMessage = useCallback(async (content: string): Promise<boolean> => {
-      if (!conversationId || !user || !content.trim()) return false;
-      try {
-          const { error: insertError } = await supabase
-              .from('messages')
-              .insert({
-                  conversation_id: conversationId,
-                  sender_id: user.id,
-                  content: content.trim(),
-              });
-          if (insertError) throw insertError;
-          return true;
-      } catch (err: any) {
-          addToast({ title: "Send Error", description: `Failed to send message: ${err.message}`, color: "danger" });
-          return false;
-      }
+  // Function to mark all incoming messages in the current conversation as read
+  const markAsRead = useCallback(async () => {
+    if (!conversationId || !user) return;
+    try {
+      await supabase.rpc('mark_messages_as_read', {
+        p_conversation_id: conversationId
+      });
+    } catch (err) {
+      console.error("Failed to mark messages as read:", err);
+    }
   }, [conversationId, user]);
 
-  // --- Load More Messages (this can also stay outside) ---
-  const loadMoreMessages = useCallback(async () => {
-    if (!hasMore || loading || !conversationId) return;
+  // Helper function to fetch message with full profile data
+  const fetchMessageWithProfile = useCallback(async (messageId: number) => {
+    try {
+      const { data, error } = await supabase
+        .from('messages')
+        .select(`*, sender:profiles(*)`)
+        .eq('id', messageId)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    } catch (err) {
+      console.error('Failed to fetch message with profile:', err);
+      return null;
+    }
+  }, []);
 
-    setLoading(true);
-    const currentPage = pageRef.current + 1;
-    const rangeStart = currentPage * MESSAGES_PER_PAGE;
-    const rangeEnd = rangeStart + MESSAGES_PER_PAGE - 1;
+  // Send a Text Message (with optimistic UI)
+  const sendTextMessage = useCallback(async (content: string, tempIdToRetry?: string) => {
+    if (!conversationId || !user) return;
+    const tempId = tempIdToRetry || `temp_${Date.now()}_${Math.random()}`;
+    
+    if (!tempIdToRetry) {
+      const optimisticMessage: Message = {
+        id: -1, 
+        temp_id: tempId, 
+        created_at: new Date().toISOString(),
+        content: content.trim(), 
+        image_url: null, 
+        conversation_id: conversationId,
+        sender_id: user.id, 
+        status: 'sending', 
+        read_at: null,
+        sender: {
+          id: user.id, 
+          username: user.user_metadata?.username || 'You',
+          avatar_url: user.user_metadata?.profilePic || null,
+          plan: user.user_metadata?.plan || 'free', 
+          full_name: user.user_metadata?.fullName || null,
+          banner_url: null, 
+          description: null, 
+          chatamata_id: null, 
+          joined_at: null,
+          updated_at: null, 
+          profile_setup_complete: true,
+        },
+      };
+      setMessages(prev => [...prev, optimisticMessage]);
+    } else {
+      setMessages(prev => prev.map(m => 
+        m.temp_id === tempId ? { ...m, status: 'sending' } : m
+      ));
+    }
 
     try {
-        const { data, error: fetchError } = await supabase
-            .from('messages')
-            .select(`*, sender:profiles(*), read_at:message_read_statuses(read_at)`)
-            .eq('conversation_id', conversationId)
-            .order('created_at', { ascending: false })
-            .range(rangeStart, rangeEnd);
-        
-        if (fetchError) throw fetchError;
-
-        const newMessages = (data || []).map((msg: any) => ({
-            ...msg,
-            read_at: msg.read_at.length > 0 ? msg.read_at[0].read_at : null
-        })).reverse();
-
-        setMessages(prev => [...newMessages, ...prev]);
-        setHasMore(data.length === MESSAGES_PER_PAGE);
-        pageRef.current = currentPage;
-
+      const { data: savedMessage, error: insertError } = await supabase
+        .from('messages')
+        .insert({ 
+          conversation_id: conversationId, 
+          sender_id: user.id, 
+          content: content.trim() 
+        })
+        .select(`*, sender:profiles(*)`)
+        .single();
+      
+      if (insertError) throw insertError;
+      
+      setMessages(prev => prev.map(m => 
+        m.temp_id === tempId ? { ...savedMessage, status: 'success' } : m
+      ));
     } catch (err: any) {
-        setError(err);
-    } finally {
-        setLoading(false);
+      console.error('Send message error:', err);
+      setMessages(prev => prev.map(m => 
+        m.temp_id === tempId ? { ...m, status: 'error' } : m
+      ));
+      addToast({ 
+        title: "Send Error", 
+        description: "Message failed to send.", 
+        color: "danger" 
+      });
     }
-  }, [conversationId, hasMore, loading]);
+  }, [conversationId, user]);
+  
+  // Send an Image Message (with optimistic UI)
+  const sendImageMessage = useCallback(async (file: File) => {
+    if (!conversationId || !user || !file) return;
+    
+    const tempId = `temp_${Date.now()}_${Math.random()}`;
+    const localImageUrl = URL.createObjectURL(file);
+    
+    const optimisticMessage: Message = {
+      id: -1, 
+      temp_id: tempId, 
+      created_at: new Date().toISOString(),
+      content: null, 
+      image_url: localImageUrl, 
+      conversation_id: conversationId,
+      sender_id: user.id, 
+      status: 'sending', 
+      read_at: null,
+      sender: {
+        id: user.id, 
+        username: user.user_metadata?.username || 'You',
+        avatar_url: user.user_metadata?.profilePic || null,
+        plan: user.user_metadata?.plan || 'free', 
+        full_name: user.user_metadata?.fullName || null,
+        banner_url: null, 
+        description: null, 
+        chatamata_id: null, 
+        joined_at: null,
+        updated_at: null, 
+        profile_setup_complete: true,
+      },
+    };
+    
+    setMessages(prev => [...prev, optimisticMessage]);
+    
+    try {
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${conversationId}/${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('chatimages')
+        .upload(filePath, file);
+      
+      if (uploadError) throw uploadError;
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from('chatimages')
+        .getPublicUrl(filePath);
+      
+      if (!publicUrl) throw new Error("Could not get public URL for image.");
+      
+      const { data: savedMessage, error: insertError } = await supabase
+        .from('messages')
+        .insert({ 
+          conversation_id: conversationId, 
+          sender_id: user.id, 
+          image_url: publicUrl 
+        })
+        .select(`*, sender:profiles(*)`)
+        .single();
+      
+      if (insertError) throw insertError;
+      
+      URL.revokeObjectURL(localImageUrl);
+      setMessages(prev => prev.map(m => 
+        m.temp_id === tempId ? { ...savedMessage, status: 'success' } : m
+      ));
+    } catch (err: any) {
+      console.error('Send image error:', err);
+      URL.revokeObjectURL(localImageUrl);
+      setMessages(prev => prev.map(m => 
+        m.temp_id === tempId ? { ...m, status: 'error' } : m
+      ));
+      addToast({ 
+        title: "Image Send Error", 
+        description: "Failed to send image.", 
+        color: "danger" 
+      });
+    }
+  }, [conversationId, user]);
 
+  // Load More Messages (Pagination)
+  const loadMoreMessages = useCallback(async () => {
+    if (loadingMore || !hasMore || !conversationId) return;
+    
+    setLoadingMore(true);
+    const currentPage = pageRef.current + 1;
+    const rangeStart = currentPage * MESSAGES_PER_PAGE;
+    
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('messages')
+        .select(`*, sender:profiles(*), read_at:message_read_statuses(read_at)`)
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: false })
+        .range(rangeStart, rangeStart + MESSAGES_PER_PAGE - 1);
+      
+      if (fetchError) throw fetchError;
+      
+      const newMessages = (data || []).map((msg: any) => ({
+        ...msg,
+        status: 'success' as const,
+        read_at: msg.read_at?.length > 0 ? msg.read_at[0].read_at : null
+      })).reverse();
+      
+      setMessages(prev => [...newMessages, ...prev]);
+      setHasMore(data.length === MESSAGES_PER_PAGE);
+      pageRef.current = currentPage;
+    } catch (err: any) {
+      console.error('Load more messages error:', err);
+      setError(err);
+    }
+    
+    setLoadingMore(false);
+  }, [loadingMore, hasMore, conversationId]);
 
-  // --- Main Effect for Fetching and Subscriptions ---
+  // Main effect for initial load and real-time subscriptions
   useEffect(() => {
-    // If no conversation is selected, do nothing.
-    if (!conversationId) {
+    if (!conversationId || !user) {
       setMessages([]);
+      setLoading(false);
       return;
     }
 
-    // --- Define async functions INSIDE the effect ---
+    // Cleanup previous channel
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
 
-    const markAsRead = async () => {
-        try {
-            await supabase.rpc('mark_messages_as_read', { p_conversation_id: conversationId });
-        } catch (err: any) {
-            console.error("Failed to mark messages as read:", err.message);
-        }
-    };
-
+    // Fetch initial messages
     const fetchInitialMessages = async () => {
-        setLoading(true);
-        pageRef.current = 0; // Reset pagination
-        setHasMore(true);
-
+      setLoading(true);
+      pageRef.current = 0;
+      setHasMore(true);
+      setError(null);
+      
+      try {
         const { data, error: fetchError } = await supabase
-            .from('messages')
-            .select(`*, sender:profiles(*), read_at:message_read_statuses(read_at)`)
-            .eq('conversation_id', conversationId)
-            .order('created_at', { ascending: false })
-            .range(0, MESSAGES_PER_PAGE - 1);
+          .from('messages')
+          .select(`*, sender:profiles(*), read_at:message_read_statuses(read_at)`)
+          .eq('conversation_id', conversationId)
+          .order('created_at', { ascending: false })
+          .range(0, MESSAGES_PER_PAGE - 1);
         
-        if (fetchError) {
-            setError(fetchError);
-            addToast({ title: "Error", description: `Failed to fetch messages: ${fetchError.message}`, color: "danger" });
-        } else {
-            const newMessages = (data || []).map((msg: any) => ({
-                ...msg,
-                read_at: msg.read_at.length > 0 ? msg.read_at[0].read_at : null
-            })).reverse();
-            setMessages(newMessages);
-            setHasMore(data.length === MESSAGES_PER_PAGE);
-            // Mark initial batch as read
-            markAsRead();
-        }
-        setLoading(false);
-    };
-
-    // --- Execute initial fetch ---
-    fetchInitialMessages();
-
-
-    // --- Setup Realtime Subscriptions ---
-
-    const handleNewMessage = async (payload: any) => {
-        const newMessage = payload.new as Message;
-        // Fetch sender profile if not already loaded (less likely now, but good fallback)
-        const { data: senderData } = await supabase.from('profiles').select('*').eq('id', newMessage.sender_id).single();
-        const messageForState: Message = { ...newMessage, sender: senderData!, read_at: null };
+        if (fetchError) throw fetchError;
         
-        setMessages(prev => {
-            if (prev.some(m => m.id === messageForState.id)) return prev;
-            return [...prev, messageForState];
-        });
+        const newMessages = (data || []).map((msg: any) => ({
+          ...msg,
+          status: 'success' as const,
+          read_at: msg.read_at?.length > 0 ? msg.read_at[0].read_at : null
+        })).reverse();
         
-        // If the new message is not from the current user, mark it as read
-        if (newMessage.sender_id !== user?.id) {
-            markAsRead();
-        }
+        setMessages(newMessages);
+        setHasMore(data.length === MESSAGES_PER_PAGE);
+        
+        // Mark messages as read after initial load
+        await markAsRead();
+      } catch (err: any) {
+        console.error('Fetch initial messages error:', err);
+        setError(err);
+      }
+      
+      setLoading(false);
     };
     
-    const handleReadStatus = (payload: any) => {
-        const { message_id, read_at, user_id } = payload.new;
-        // Update a message's read_at only if it's not our own read status update
-        if (user_id !== user?.id) {
-            setMessages(prev => prev.map(m => 
-                m.id === message_id ? { ...m, read_at } : m
-            ));
-        }
-    };
+    fetchInitialMessages();
 
-    const messagesChannel = supabase
-        .channel(`messages:convo_${conversationId}`)
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` }, handleNewMessage)
-        .subscribe();
+    // Setup real-time subscriptions with unique channel name
+    const channelName = `chat-${conversationId}-${user.id}-${Date.now()}`;
+    const channel = supabase.channel(channelName);
+    channelRef.current = channel;
+    
+    // Handle new messages
+    const handleNewMessage = async (payload: any) => {
+      console.log('New message received:', payload);
+      const newMessage = payload.new;
       
-    const readStatusChannel = supabase
-        .channel(`read_status:convo_${conversationId}`)
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'message_read_statuses' }, handleReadStatus)
-        .subscribe();
-
-    // --- Cleanup ---
-    return () => {
-        supabase.removeChannel(messagesChannel);
-        supabase.removeChannel(readStatusChannel);
+      // Skip if it's our own message (already handled optimistically)
+      if (newMessage.sender_id === user.id) {
+        return;
+      }
+      
+      // Fetch the complete message with profile data
+      const fullMessage = await fetchMessageWithProfile(newMessage.id);
+      if (fullMessage) {
+        setMessages(prev => {
+          // Check if message already exists
+          const exists = prev.some(m => m.id === fullMessage.id);
+          if (exists) return prev;
+          
+          return [...prev, { ...fullMessage, status: 'success' }];
+        });
+        
+        // Mark new message as read immediately
+        await markAsRead();
+      }
+    };
+    
+    // Handle read status updates
+    const handleReadStatus = (payload: any) => {
+      console.log('Read status update:', payload);
+      const { message_id, read_at } = payload.new;
+      
+      setMessages(prev => prev.map(m => 
+        m.id === message_id ? { ...m, read_at: read_at } : m
+      ));
     };
 
-  }, [conversationId, user?.id]); // The effect now ONLY depends on conversationId and userId
+    // Subscribe to changes
+    channel
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `conversation_id=eq.${conversationId}`
+        },
+        handleNewMessage
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'message_read_statuses'
+          // Remove conversation filter here - use message_id instead
+        },
+        handleReadStatus
+      )
+      .subscribe((status) => {
+        console.log('Subscription status:', status);
+      });
 
-  return { messages, loading, error, hasMore, sendMessage, loadMoreMessages };
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
+  }, [conversationId, user?.id, markAsRead, fetchMessageWithProfile]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+      }
+    };
+  }, []);
+
+  return { 
+    messages, 
+    loading, 
+    loadingMore, 
+    hasMore, 
+    error,
+    sendTextMessage, 
+    sendImageMessage, 
+    loadMoreMessages 
+  };
 };

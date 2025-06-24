@@ -14,6 +14,7 @@ export interface Profile {
   updated_at: string | null;       // <-- Ensure this is here (TIMESTAMPTZ from DB)
   profile_setup_complete: boolean;
   plan: 'free' | 'verified' | 'premium' | 'vip'; // <-- ADD THIS LINE
+  
   // Add more fields as needed
 }
 
@@ -24,11 +25,14 @@ export interface Message {
   id: number;
   sender_id: string;
   conversation_id: number;
-  content: string;
+  content: string | null; // <-- Can be null now
   created_at: string;
   sender: Profile;
+  image_url: string | null;
   // NEW: Add a field to know if the message has been read by others
   read_at: string | null; 
+  temp_id?: string; // A temporary ID generated on the client
+  status?: 'sending' | 'success' | 'error'; // The status of the message
 }
 
 // Type for a conversation

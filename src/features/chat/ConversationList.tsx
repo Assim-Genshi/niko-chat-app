@@ -9,7 +9,9 @@ import { ConversationPreview } from '../../types'; // Your existing type
 interface ConversationListProps {
   onSelectConversation: (conversation: ConversationPreview) => void; // This will trigger navigation
   selectedConversationId?: number | null;
+
 }
+
 
 const ConversationItemSkeleton: React.FC = () => ( 
   <li className="p-1">
@@ -55,9 +57,12 @@ export const ConversationList: React.FC<ConversationListProps> = ({ onSelectConv
     searchQuery,
     setSearchQuery 
   } = useConversations();
+  
 
   const { onlineUsers } = usePresence();
   const navigate = useNavigate();
+
+  
 
   return (
     <div className="w-full sm:border-r sm:border-base-300 p-2 h-full flex space-y-3 flex-col">
@@ -74,11 +79,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({ onSelectConv
          onValueChange={setSearchQuery} // Update state on change
          startContent={<MagnifyingGlassIcon className='w-5 h-5 text-default-400'/>}
        />
-      <div className='flex-row w-full space-x-2'>
-        <Button variant='flat' size='sm' radius='full' color='default' className='w-fit font-semibold' >all</Button>
-        <Button variant='flat' size='sm' radius='full' color='default' className='w-fit font-semibold' >groups</Button>
-        <Button variant='flat' size='sm' radius='full' color='default' className='w-fit font-semibold' >unread</Button>
-      </div>
+      
 
       {error && <p className="text-danger-500 p-3 text-center">Error loading chats.</p>}
       {!error && (
@@ -134,19 +135,17 @@ export const ConversationList: React.FC<ConversationListProps> = ({ onSelectConv
                           </Badge>
                         </div>
                         <div className="flex-grow gap-0 min-w-0">
-                          <div className="flex justify-between items-center"> {/* NEW WRAPPER */}
+                          <div className="flex justify-start items-center"> {/* NEW WRAPPER */}
                             <p className={`font-semibold text-md truncate`}>
-                              {convo.display_name || 'Chat'}
+                              {convo.display_name || 'Chat'} 
                             </p>
-                            
                           </div>
                           <p className={`text-sm truncate`}>
                             {'last: ' + convo.latest_message_content || 'No messages yet...'}
                           </p>
                           
-                          
                         </div>
-                        <div className='flex flex-col justify-end items-end space-y-1'>
+                        <div className='flex flex-col min-w-14 justify-end items-end space-y-1'>
                           <p className='text-xs text-base-content/40 self-start'>
                             {formatMessageDate(convo.latest_message_created_at || '')}
                           </p>

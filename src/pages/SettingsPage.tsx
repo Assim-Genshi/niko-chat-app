@@ -104,7 +104,7 @@ const SettingsPage = () => {
                 placeholder="Enter delay"
               />
             </div>
-            <Button onPress={handleLogout} className="w-full" color="danger">Logout</Button>
+            <Button radius="full" onPress={handleLogout} className="w-full" color="danger">Logout</Button>
           </div>
         </section>
       </div>

@@ -20,10 +20,10 @@ import { ArrowRightStartOnRectangleIcon, UserIcon, ChevronDoubleLeftIcon, ChatBu
 const User = () => {
   const navigate = useNavigate();
   const { session } = useAuth(); // Get Supabase session
-  const { authUser } = useProfilePageLogic(); // Type-cast Supabase user
+  const { authUser, profileData, } = useProfilePageLogic(); // Type-cast Supabase user
 
-  const displayName = authUser?.user_metadata?.name || authUser?.user_metadata?.display_name || authUser?.email?.split('@')[0] || "User";
-  const profilePicUrl = authUser?.user_metadata?.profilePic || undefined; // Let HeroImage handle undefined with a fallback or style it
+  const displayName = authUser?.user_metadata?.name || authUser?.user_metadata?.display_name || authUser?.user_metadata?.username || authUser?.email?.split('@')[0] || "User";
+  const profilePicUrl = profileData?.avatar_url || authUser?.user_metadata?.profilePic || "/profile/default-avatar.jpg";
 
 
 

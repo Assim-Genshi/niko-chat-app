@@ -290,6 +290,20 @@ export const useProfilePageLogic = () => {
     }
   };
 
+  // 修复模态框关闭函数的实现
+  const closeAvatarModal = () => {
+    setAvatarModalOpen(false);
+    resetAvatarCropperState();
+  };
+
+  const closeBannerModal = () => {
+    setBannerModalOpen(false);
+    resetBannerCropperState();
+  };
+
+  const closeEditDetailsModal = () => {
+    setIsEditDetailsModalOpen(false);
+  };
 
   return {
     authUser,
@@ -299,7 +313,7 @@ export const useProfilePageLogic = () => {
 
     isAvatarModalOpen,
     openAvatarModal: () => { resetAvatarCropperState(); setAvatarModalOpen(true); },
-    closeAvatarModal: () => { setAvatarModalOpen(false); resetAvatarCropperState(); },
+    closeAvatarModal,
     avatarSrcForCropper,
     avatarCrop, setAvatarCrop,
     avatarZoom, setAvatarZoom,
@@ -311,7 +325,7 @@ export const useProfilePageLogic = () => {
 
     isBannerModalOpen,
     openBannerModal: () => { resetBannerCropperState(); setBannerModalOpen(true); },
-    closeBannerModal: () => { setBannerModalOpen(false); resetBannerCropperState(); },
+    closeBannerModal,
     bannerSrcForCropper,
     bannerCrop, setBannerCrop,
     bannerZoom, setBannerZoom,
@@ -323,22 +337,10 @@ export const useProfilePageLogic = () => {
 
     isEditDetailsModalOpen,
     openEditDetailsModal: () => setIsEditDetailsModalOpen(true),
-    closeEditDetailsModal: () => setIsEditDetailsModalOpen(false),
+    closeEditDetailsModal,
     updateProfileTextDetails,
     isUpdatingProfileTextDetails,
     
     refreshProfileData: fetchProfileData, // Expose to allow manual refresh if needed
   };
-};
-
-function closeBannerModal(): void {
-  throw new Error('Function not implemented.');
-}
-function closeAvatarModal(): void {
-  throw new Error('Function not implemented.');
-}
-
-function closeEditDetailsModal() {
-  throw new Error('Function not implemented.');
-}
-
+};    

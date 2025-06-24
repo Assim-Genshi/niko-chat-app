@@ -1,5 +1,4 @@
-// src/features/chat/useConversations.ts
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '../../supabase/supabaseClient';
 import { useAuth } from '../../contexts/AuthContext';
 import { addToast } from "@heroui/react";
@@ -10,114 +9,199 @@ export const useConversations = () => {
   const [conversations, setConversations] = useState<ConversationPreview[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  
-  // --- NEW: State for search functionality ---
   const [searchQuery, setSearchQuery] = useState('');
+  const channelRef = useRef<any>(null);
+  const initialLoadRef = useRef(false);
 
-  // The initial fetch for all conversations
+  // This function fetches the entire, up-to-date list.
   const fetchAllConversations = useCallback(async () => {
     if (!session) return;
-    setLoading(true);
+    
+    // Only show the main skeleton on the very first load
+    if (!initialLoadRef.current) {
+      setLoading(true);
+    }
     setError(null);
+    
     try {
       const { data, error: rpcError } = await supabase.rpc('get_user_conversations');
       if (rpcError) throw rpcError;
-      setConversations(data || []);
+      
+      // Sort the conversations to ensure the most recent is always first
+      const sortedData = (data || []).sort((a: ConversationPreview, b: ConversationPreview) => 
+        new Date(b.latest_message_created_at || 0).getTime() - new Date(a.latest_message_created_at || 0).getTime()
+      );
+      setConversations(sortedData);
+      initialLoadRef.current = true;
+
     } catch (err: any) {
+      console.error('Fetch conversations error:', err);
       setError(err);
-      addToast({ title: "Error", description: `Failed to fetch conversations: ${err.message}`, color: "danger" });
+      addToast({ 
+        title: "Error", 
+        description: `Failed to fetch conversations: ${err.message}`, 
+        color: "danger" 
+      });
     } finally {
       setLoading(false);
     }
-  }, [session]);
+  }, [session]); // Removed conversations.length dependency
 
+  // Optimized update function for real-time changes
+  const updateConversationFromMessage = useCallback((messagePayload: any) => {
+    const { conversation_id, created_at, content, image_url, sender_id } = messagePayload;
+    
+    setConversations(prev => {
+      const updated = prev.map(convo => {
+        if (convo.conversation_id === conversation_id) {
+          return {
+            ...convo,
+            latest_message_created_at: created_at,
+            latest_message_content: content || (image_url ? '📷 Image' : 'Message'),
+            // Only increment unread count if it's not from the current user
+            unread_count: sender_id === user?.id ? convo.unread_count : (convo.unread_count || 0) + 1
+          };
+        }
+        return convo;
+      });
+      
+      // Re-sort conversations by latest message time
+      return updated.sort((a, b) => 
+        new Date(b.latest_message_created_at || 0).getTime() - new Date(a.latest_message_created_at || 0).getTime()
+      );
+    });
+  }, [user?.id]);
+
+  // Handle read status updates
+  const updateReadStatus = useCallback((readPayload: any) => {
+    const { conversation_id } = readPayload;
+    
+    setConversations(prev => prev.map(convo => {
+      if (convo.conversation_id === conversation_id) {
+        return {
+          ...convo,
+          unread_count: 0 // Reset unread count when messages are read
+        };
+      }
+      return convo;
+    }));
+  }, []);
+
+  // Initial fetch when the hook mounts
   useEffect(() => {
     fetchAllConversations();
   }, [fetchAllConversations]);
 
-
-  // --- NEW: Robust Real-time Subscription Logic ---
+  // Real-time subscriptions
   useEffect(() => {
     if (!user) return;
 
-    // Helper function to fetch a single, updated conversation and update state
-    const updateSingleConversation = async (conversationId: number) => {
-        const { data, error } = await supabase
-            .rpc('get_user_conversations')
-            .eq('conversation_id', conversationId)
-            .single();
+    // Cleanup previous channel
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
 
-        if (error || !data) {
-            console.error('Could not refetch single conversation:', error);
-            return;
+    // Create unique channel name
+    const channelName = `conversations-${user.id}-${Date.now()}`;
+    const channel = supabase.channel(channelName);
+    channelRef.current = channel;
+
+    // Handle new messages
+    const handleNewMessage = (payload: any) => {
+      console.log('New message for conversations:', payload);
+      updateConversationFromMessage(payload.new);
+    };
+
+    // Handle message read status updates
+    const handleReadStatusUpdate = (payload: any) => {
+      console.log('Read status update for conversations:', payload);
+      updateReadStatus(payload.new);
+    };
+
+    // Handle new conversations (when someone starts a new chat)
+    const handleNewConversation = () => {
+      console.log('New conversation detected, refetching...');
+      fetchAllConversations();
+    };
+
+    // Subscribe to relevant changes
+    channel
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages'
+        },
+        handleNewMessage
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'message_read_statuses'
+        },
+        handleReadStatusUpdate
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'participants'
+        },
+        handleNewConversation
+      )
+      .subscribe((status, err) => {
+        console.log('Conversations subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          console.log('Realtime channel for conversations is subscribed.');
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('Realtime channel error:', err);
         }
+      });
 
-        const updatedConvo = data as ConversationPreview;
-
-        setConversations(currentList => {
-            const listWithoutOld = currentList.filter(c => c.conversation_id !== conversationId);
-            return [updatedConvo, ...listWithoutOld];
-        });
-    };
-
-    const handleMessageInsert = (payload: any) => {
-        updateSingleConversation(payload.new.conversation_id);
-    };
-
-    const handleProfileUpdate = (payload: any) => {
-        // When a profile updates, we could refetch every conversation with that user,
-        // but a simpler approach is to just refetch the whole list. This is less frequent.
-        fetchAllConversations();
-    };
-
-    // When we're added to a new chat (e.g., friend request accepted)
-    const handleNewParticipant = (payload: any) => {
-        if (payload.new.user_id === user.id) {
-            fetchAllConversations(); // Refetch the list to show the new conversation
-        }
-    };
-    
-    // Subscriptions
-    const messages = supabase.channel('public:messages:useConversations')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, handleMessageInsert)
-        .subscribe();
-        
-    const profiles = supabase.channel('public:profiles:useConversations')
-        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles' }, handleProfileUpdate)
-        .subscribe();
-        
-    const participants = supabase.channel('public:participants:useConversations')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'participants' }, handleNewParticipant)
-        .subscribe();
-
-    // Cleanup
+    // Cleanup function
     return () => {
-        supabase.removeChannel(messages);
-        supabase.removeChannel(profiles);
-        supabase.removeChannel(participants);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
+  }, [user, updateConversationFromMessage, updateReadStatus, fetchAllConversations]);
 
-  }, [user, fetchAllConversations]);
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+      }
+    };
+  }, []);
 
-
-  // --- NEW: Memoized filtering for search ---
+  // Memoized filtering for search
   const filteredConversations = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
-    if (!query) {
-      return conversations; // Return all if search is empty
-    }
+    if (!query) return conversations;
     return conversations.filter(convo =>
-      convo.display_name?.toLowerCase().includes(query)
+      convo.display_name?.toLowerCase().includes(query) ||
+      convo.latest_message_content?.toLowerCase().includes(query)
     );
   }, [searchQuery, conversations]);
 
+  // Manual refresh function
+  const refetch = useCallback(() => {
+    fetchAllConversations();
+  }, [fetchAllConversations]);
 
   return {
-    conversations: filteredConversations, // Return the filtered list
+    conversations: filteredConversations,
     loading,
     error,
-    refetch: fetchAllConversations,
-    searchQuery,         // Expose search query
-    setSearchQuery       // Expose the setter for the input
+    refetch,
+    searchQuery,
+    setSearchQuery
   };
 };
