@@ -21,6 +21,7 @@ export function ThemeToggle({ className = '' }: ThemeToggleProps) {
   return (
     <Button
       isIconOnly
+      radius='full'
       variant='solid'
       aria-label='Switch Theme'
       title='Switch Theme'

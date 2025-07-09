@@ -27,6 +27,7 @@ import {
   UserGroupIcon,
   ChevronUpDownIcon
 } from "@heroicons/react/24/solid";
+import { ThemeToggle } from "./ThemeSwitcher";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -64,7 +65,7 @@ const Navbar = () => {
   icon: (
     <Badge
       content={incomingCount > 9 ? '9+' : incomingCount}
-      color="danger"
+      color="warning"
       shape="circle"
       size="sm"
       isInvisible={incomingCount === 0 || clicked}
@@ -85,7 +86,7 @@ const Navbar = () => {
   ];
 
   const displayName = authUser?.user_metadata?.name || authUser?.user_metadata?.display_name || authUser?.user_metadata?.username || authUser?.email?.split('@')[0] || "User";
-  const profilePicUrl = profileData?.avatar_url || authUser?.user_metadata?.profilePic || "/profile/default-avatar.jpg";
+  const profilePicUrl = profileData?.avatar_url || "/profile/default-avatar.jpg";
 
   const handleLogout = async () => {
     try {
@@ -116,7 +117,7 @@ const Navbar = () => {
   return (
     <aside className={`
       bg-base-200 flex flex-col transition-[width] duration-300 ease-in-out p-4
-      ${isMobile || isCollapsed ? "w-20" : "w-64"}
+      ${isMobile || isCollapsed ? "w-20" : "w-80"}
     `}>
       <div onClick={() => navigate('/')} className="flex items-center gap-3 pb-4 cursor-pointer overflow-hidden">
         <Logo className="w-11 h-11 shrink-0 text-base-content" />
@@ -160,9 +161,13 @@ const Navbar = () => {
       
 
       {session && (
+        <ThemeToggle />
+      )}
+
+      {session && (
            <Dropdown>
               <DropdownTrigger>
-                <div className={`flex items-center  gap-3 p-2 bg-base-100 hover:bg-base-300/60 rounded-2xl transition-all duration-300 cursor-pointer ${isMobile || isCollapsed ? "justify-start px-2 py-1" : ""}`}>
+                <div className={`flex items-center gap-3 p-2 bg-base-100 hover:bg-base-300/60 rounded-2xl transition-all duration-300 cursor-pointer ${isMobile || isCollapsed ? "justify-start px-2 py-1 l" : ""}`}>
                   <Avatar size="sm" className='shrink-0 overflow-hidden' src={profilePicUrl} alt="Profile" />
                   <div className={`flex flex-row w-full gap-2 justify-between items-center overflow-hidden transition-all duration-300 ${isMobile || isCollapsed ? "w-0 opacity-0 blur-md" : "w-40 opacity-100"}`}>
                     <div>

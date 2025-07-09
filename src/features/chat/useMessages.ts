@@ -46,6 +46,30 @@ export const useMessages = (conversationId: number | null) => {
       return null;
     }
   }, []);
+  
+
+  const deleteMessage = useCallback(async (messageId: number) => {
+    if (!conversationId || !user) return;
+
+    // Optimistically update the UI by filtering out the message
+    setMessages(prev => prev.filter(m => m.id !== messageId));
+
+    try {
+      // Perform the "soft delete" in the database
+      const { error } = await supabase
+        .from('messages')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', messageId);
+
+      if (error) {
+        // If the delete fails, we would ideally add the message back to the list.
+        // For now, we'll show an error.
+        throw error;
+      }
+    } catch (err: any) {
+      addToast({ title: "Error", description: "Could not delete message.", color: "danger" });
+    }
+  }, [conversationId, user]);
 
   // Send a Text Message (with optimistic UI)
   const sendTextMessage = useCallback(async (content: string, tempIdToRetry?: string) => {
@@ -114,8 +138,19 @@ export const useMessages = (conversationId: number | null) => {
   }, [conversationId, user]);
   
   // Send an Image Message (with optimistic UI)
+
+  
   const sendImageMessage = useCallback(async (file: File) => {
     if (!conversationId || !user || !file) return;
+    
+    // Debug logging
+    console.log('Debug info:', {
+      conversationId,
+      userId: user.id,
+      userRole: user.role,
+      fileName: file.name,
+      fileSize: file.size
+    });
     
     const tempId = `temp_${Date.now()}_${Math.random()}`;
     const localImageUrl = URL.createObjectURL(file);
@@ -151,17 +186,29 @@ export const useMessages = (conversationId: number | null) => {
       const fileExt = file.name.split('.').pop();
       const filePath = `${conversationId}/${Date.now()}.${fileExt}`;
       
+      console.log('Uploading to path:', filePath);
+      
       const { error: uploadError } = await supabase.storage
         .from('chatimages')
         .upload(filePath, file);
       
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw uploadError;
+      }
       
       const { data: { publicUrl } } = supabase.storage
         .from('chatimages')
         .getPublicUrl(filePath);
       
       if (!publicUrl) throw new Error("Could not get public URL for image.");
+      
+      console.log('Public URL:', publicUrl);
+      console.log('About to insert message with:', {
+        conversation_id: conversationId,
+        sender_id: user.id,
+        image_url: publicUrl
+      });
       
       const { data: savedMessage, error: insertError } = await supabase
         .from('messages')
@@ -173,7 +220,10 @@ export const useMessages = (conversationId: number | null) => {
         .select(`*, sender:profiles(*)`)
         .single();
       
-      if (insertError) throw insertError;
+      if (insertError) {
+        console.error('Insert error details:', insertError);
+        throw insertError;
+      }
       
       URL.revokeObjectURL(localImageUrl);
       setMessages(prev => prev.map(m => 
@@ -367,6 +417,7 @@ export const useMessages = (conversationId: number | null) => {
   return { 
     messages, 
     loading, 
+    deleteMessage,
     loadingMore, 
     hasMore, 
     error,

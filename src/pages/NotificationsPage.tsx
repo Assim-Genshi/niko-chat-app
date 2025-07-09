@@ -1,6 +1,6 @@
 import React from 'react';
 import { useFriends } from '../features/friends/useFriends'; // Assuming you have this hook
-import { Button, Card, Spinner, Avatar, Image, User } from '@heroui/react';
+import { Button, Spinner, Avatar, Image, User } from '@heroui/react';
 import { CheckIcon, XMarkIcon, BellAlertIcon } from '@heroicons/react/24/solid'; // Changed UserIcon to BellAlertIcon
 import { Profile } from '../types'
 
@@ -22,7 +22,7 @@ const NotificationsPage: React.FC = () => {
     bottomAction?: React.ReactNode,
     key?: string | number
   ) => (
-    <div key={key || user.id} className="relative w-full max-w-80 gap-2 bg-base-content flex flex-col items-center justify-start p-3 rounded-3xl shadow-lg">
+    <div key={key || user.id} className="relative w-full max-w-80 gap-2 bg-base-content flex flex-col items-center justify-start p-2 rounded-3xl shadow-lg">
       <div className="relative w-full">
         <Image src={user.banner_url || '/banner.png'} className='w-full aspect-[2/1] object-cover rounded-2xl shadow-xl' />
         {topAction && (
@@ -32,7 +32,7 @@ const NotificationsPage: React.FC = () => {
         )}
       </div>
   
-      <div className='flex flex-row w-full gap-5 items-center justify-between my-4 '>
+      <div className='flex flex-row w-full gap-5 items-center justify-between px-2 my-2 '>
         <User
           avatarProps={{
             src: user.avatar_url || '/avatar.png'

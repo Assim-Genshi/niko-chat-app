@@ -57,8 +57,8 @@ const ProfilePage: React.FC = () => {
 
   // User display details
   const displayName = authUser?.user_metadata?.name || authUser?.user_metadata?.display_name || authUser?.user_metadata?.username || authUser?.email?.split('@')[0] || "User";
-  const profilePicUrl = profileData?.avatar_url || authUser?.user_metadata?.profilePic || "/profile/default-avatar.jpg";
-  const bannerUrl = profileData?.banner_url || authUser?.user_metadata?.bannerUrl || "/profile/default-banner.jpg";
+  const profilePicUrl = profileData?.avatar_url || "/profile/default-avatar.jpg";
+  const bannerUrl = profileData?.banner_url || "/profile/default-banner.jpg";
 
   // State for the Edit Profile Details Modal form
   const [editingUsername, setEditingUsername] = useState('');
@@ -145,11 +145,12 @@ const ProfilePage: React.FC = () => {
 
       {/* Banner & Profile Pic Section */}
       <div className="relative">
-        <div className='w-full aspect-[3/1] rounded-2xl bg-base-300'> {/* Placeholder aspect ratio div */}
-          <Image
+        <div className='w-full max-w-none aspect-[3/1] rounded-2xl bg-base-300'> {/* Placeholder aspect ratio div */} 
+        
+          <img
             src={bannerUrl}
             alt="Banner"
-            className="w-full h-full aspect-[3/1] object-cover rounded-2xl z-10"
+            className="w-full h-full  aspect-[3/1] object-cover rounded-2xl z-10"
           />
           <div
             className='absolute inset-0 flex items-center justify-center bg-base-100/30 z-20 backdrop-blur-sm opacity-0 hover:opacity-100 transition-opacity cursor-pointer rounded-2xl'
@@ -161,6 +162,7 @@ const ProfilePage: React.FC = () => {
         </div>
         
         <div className="absolute left-4 -bottom-10 md:-bottom-16 w-fit group">
+
           <Avatar
             src={profilePicUrl}
             alt="Profile"
@@ -198,7 +200,7 @@ const ProfilePage: React.FC = () => {
       </div>
 
       <div className='w-full justify-between flex items-center space-x-4'>
-        <Button className="w-full" radius='full' variant="solid" color="primary" isIconOnly onPress={openEditDetailsModal} aria-label="Edit profile details">
+        <Button className="bg-brand-500 text-white w-full" radius='full' variant="solid" isIconOnly onPress={openEditDetailsModal} aria-label="Edit profile details">
             <PencilIcon className="w-6 h-6" />
           </Button>
       </div>

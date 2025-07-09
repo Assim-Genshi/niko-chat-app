@@ -73,7 +73,7 @@ export default function HeroSection() {
                             <img
                                 src="/night-background.jpg"
                                 alt="background"
-                                className="absolute inset-x-0 top-56 -z-20 hidden lg:top-32 dark:block"
+                                className="absolute inset-x-0 top-56 z-20 hidden lg:top-32 dark:block"
                                 width="3276"
                                 height="4095"
                             />
@@ -91,10 +91,10 @@ export default function HeroSection() {
                                         <div className="bg-background group-hover:bg-muted size-6 overflow-hidden rounded-full duration-500">
                                             <div className="flex w-12 -translate-x-1/2 duration-500 ease-in-out group-hover:translate-x-0">
                                                 <span className="flex size-6">
-                                                    <ArrowRight className="m-auto size-3" />
+                                                    <ArrowRight className="m-auto size-3 text-brand-500" />
                                                 </span>
                                                 <span className="flex size-6">
-                                                    <ArrowRight className="m-auto size-3" />
+                                                    <ArrowRight className="m-auto size-3 text-brand-500" />
                                                 </span>
                                             </div>
                                         </div>
@@ -135,7 +135,7 @@ export default function HeroSection() {
                                         <Button
                                             onPress={() => navigate('/login')}
                                             size="lg"
-                                            className="rounded-xl px-5 bg-base-content text-base-100">
+                                            className="bg-brand-500 text-base-100">
                                             Get Started
                                         </Button>
                                     
@@ -143,8 +143,8 @@ export default function HeroSection() {
                                         onPress={() => navigate('/signup')}
                                         key={2}
                                         size="lg"
-                                        variant="ghost"
-                                        className="border-base-content rounded-xl px-5">
+                                        variant="bordered"
+                                        className="border-brand-500 text-brand-500">
                                         Request a demo
                                     </Button>
                                 </AnimatedGroup>

@@ -56,7 +56,7 @@ const SettingsPage = () => {
                 width={160}
                 height={100}
                 className={`cursor-pointer ${
-                  theme === "light" ? "ring-2 ring-primary-500" : "ring-1 ring-zinc-300"
+                  theme === "light" ? "ring-2 ring-brand-500" : "ring-1 ring-zinc-300"
                 }`}
               />
             </div>
@@ -69,7 +69,7 @@ const SettingsPage = () => {
                 width={160}
                 height={100}
                 className={`cursor-pointer ${
-                  theme === "dark" ? "ring-2 ring-primary-500" : "ring-1 ring-zinc-300"
+                  theme === "dark" ? "ring-2 ring-brand-500" : "ring-1 ring-zinc-300"
                 }`}
               />
             </div>
@@ -84,6 +84,7 @@ const SettingsPage = () => {
               <span className="text-base-content">Enable Typing Sounds</span>
               <Switch
                 isSelected={typingSoundEnabled} onValueChange={setTypingSoundEnabled}
+                color="warning"
               />
             </div>
 

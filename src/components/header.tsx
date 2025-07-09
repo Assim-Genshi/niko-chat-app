@@ -46,7 +46,7 @@ export const HeroHeader = () => {
             {/* Logo + Mobile menu toggle */}
             <div className="flex w-full justify-between items-center lg:w-auto">
               <Link href="/" aria-label="home" className="flex items-center space-x-2">
-                <Logo />
+                <Logo className='text-brand-500' />
               </Link>
 
               <Button
@@ -105,10 +105,10 @@ export const HeroHeader = () => {
                 <ThemeToggle />
                 {!session ? (
                   <>
-                    <Button className='border-base-content' variant="ghost" size="md" onPress={() => navigate('/login')}>
+                    <Button  variant="bordered" className="border-brand-500 text-brand-500" size="md" onPress={() => navigate('/login')}>
                       Login
                     </Button>
-                    <Button className='bg-base-content text-base-100' size="md" onPress={() => navigate('/signup')}>
+                    <Button  className='bg-brand-500 text-base-100' variant="solid" size="md" onPress={() => navigate('/signup')}>
                       Sign up
                     </Button>
                   </>

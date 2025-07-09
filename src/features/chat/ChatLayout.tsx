@@ -45,20 +45,21 @@ export const ChatLayout: React.FC = () => {
 
 
   return (
-    <div className="flex flex-row h-full sm:h-[calc(100vh-18px)] w-full overflow-hidden place-self-center">
+    <div className="flex flex-row h-full sm:h-[calc(100vh-18px)] w-full place-self-center">
       {/* Conversation List Container */}
       <div className={`
-          w-full sm:w-1/4 min-w-64 sm:max-w-80 flex flex-col
+          w-full sm:my-2 sm:ml-2 sm:rounded-2xl backdrop-blur-lg bg-base-200/80 overflow-visible sm:w-1/4 min-w-64 sm:max-w-80 flex z-20 flex-col shadow-lg
           ${selectedConversation && ''} {/* Keep mobile hide logic */}
       `}>
         <ConversationList
             onSelectConversation={handleSelectConversationInUI}
             selectedConversationId={selectedConversation?.conversation_id || null}
+            
         />
       </div>
 
       {/* Chat Window Container */}
-      <div className="flex-grow flex-col bg-base-100 hidden sm:flex">
+      <div className="flex-grow flex-col bg-base-100/10 hidden sm:flex">
         {selectedConversation ? (
           // FIX: Add a unique key to force a remount when the conversation changes
           <ChatWindow 
