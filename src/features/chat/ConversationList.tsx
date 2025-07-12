@@ -1,7 +1,7 @@
 import React, { useMemo, useRef, useState, useCallback, useEffect } from 'react';
 import { useConversations } from './useConversations';
 import { usePresence } from '../../contexts/PresenceContext';
-import { Input, Skeleton, Card, Badge, Avatar, Button, Chip, Tooltip, Image } from '@heroui/react';
+import { Input, Skeleton, Card, Badge, Avatar, Button, Chip, Image } from '@heroui/react';
 import { useNavigate } from 'react-router-dom';
 import { MagnifyingGlassIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
 import { ConversationPreview } from '../../types';
@@ -83,7 +83,7 @@ const OnlineUserList: React.FC<{
       <ul ref={scrollContainerRef} onScroll={handleScroll} className="flex items-center justify-between gap-4 px-2 :overflow-auto scroll-smooth hide-scrollbar">
         {activeConversations.map(convo => (
           <li key={convo.conversation_id} className="flex-shrink-0 overflow-visible">
-            <div>
+            <div className='active:scale-95 transition-transform duration-150 cursor-pointer'>
              <Image
               isBlurred
               onClick={() => onSelectConversation(convo)}
@@ -179,7 +179,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({ onSelectConv
       
       {/* Only show divider when online user list is visible */}
       {!loading && !isSearching && conversations.length > 0 && (
-        <hr className="border-base-200 m-0" />
+        <> </>
       )}
 
       {error && <p className="text-danger-500 p-3 text-center">Error loading chats.</p>}
@@ -187,7 +187,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({ onSelectConv
         <div className="overflow-y-auto flex-grow">
           {loading && (
             <ul className='gap-2 p-1 overflow-visible'>
-              {[...Array(10)].map((_, index) => (
+              {[...Array(5)].map((_, index) => (
                 <ConversationItemSkeleton key={index} />
               ))}
             </ul>
@@ -207,14 +207,14 @@ export const ConversationList: React.FC<ConversationListProps> = ({ onSelectConv
 
                 return (
                   <li key={convo.conversation_id} className="rounded-lg transition-colors duration-150 ease-in-out" onClick={() => onSelectConversation(convo)}>
-                    <Card shadow='none' radius='lg' className={`w-full p-2 cursor-pointer border border-transparent ${isSelected ? 'bg-base-100/60' : 'bg-transparent hover:bg-base-200/50'}`}>
+                    <Card shadow='none' radius='lg' className={`w-full p-2 cursor-pointer border border-transparent active:scale-95 transition-all duration-50 ${isSelected ? 'bg-base-100/60' : 'bg-transparent hover:bg-base-200/50'}`}>
                       <div className="flex items-center space-x-3 w-full min-w-0">
                         <div className="flex-shrink-0 w-10 h-10">
                           <Badge content="" color="success" shape="circle" placement="bottom-right"
                             isInvisible={!isDmAndOtherUserOnline}
                             className={`border-2 ${isSelected ? 'border-base-100' : 'border-base-200'}`}
                           >
-                            <Avatar src={convo.display_avatar || '/avatar.png'} alt={convo.display_name || 'Chat'} size="md"/>
+                            <Avatar src={convo.display_avatar || '/profile/avatar.jpg'} alt={convo.display_name || 'Chat'} size="md"/>
                           </Badge>
                         </div>
                         <div className="flex-grow gap-0 min-w-0">
@@ -222,7 +222,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({ onSelectConv
                             {convo.display_name || 'Chat'} 
                           </p>
                           <p className="text-sm truncate text-base-content/70">
-                            {convo.latest_message_content ? (convo.latest_message_content.startsWith('📷') ? '📷 Image' : convo.latest_message_content) : 'No messages yet...'}
+                            {convo.latest_message_content ? (convo.latest_message_content.startsWith('gqvlesfrcjmzadnzwgfy') ? '📷 Image' : convo.latest_message_content) : 'No messages yet...'}
                           </p>
                         </div>
                         <div className='flex flex-col min-w-14 justify-end items-end space-y-1'>

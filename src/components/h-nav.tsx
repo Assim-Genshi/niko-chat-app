@@ -86,7 +86,7 @@ const Navbar = () => {
   ];
 
   const displayName = authUser?.user_metadata?.name || authUser?.user_metadata?.display_name || authUser?.user_metadata?.username || authUser?.email?.split('@')[0] || "User";
-  const profilePicUrl = profileData?.avatar_url || "/profile/default-avatar.jpg";
+  const profilePicUrl = profileData?.avatar_url || "/profile/avatar.jpg";
 
   const handleLogout = async () => {
     try {

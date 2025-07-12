@@ -57,7 +57,7 @@ const ProfilePage: React.FC = () => {
 
   // User display details
   const displayName = authUser?.user_metadata?.name || authUser?.user_metadata?.display_name || authUser?.user_metadata?.username || authUser?.email?.split('@')[0] || "User";
-  const profilePicUrl = profileData?.avatar_url || "/profile/default-avatar.jpg";
+  const profilePicUrl = profileData?.avatar_url || "/profile/avatar.jpg";
   const bannerUrl = profileData?.banner_url || "/profile/default-banner.jpg";
 
   // State for the Edit Profile Details Modal form
@@ -210,7 +210,7 @@ const ProfilePage: React.FC = () => {
         <Card>
           <CardBody className='gap-2'>
             <h3 className="text-md font-semibold text-base-content/90">About you</h3>
-            <p className='text-base-content/80'>
+            <p className='text-base-content/80 whitespace-pre-wrap break-words'>
               {profileData?.description || "meow?!"}
             </p>
           </CardBody>

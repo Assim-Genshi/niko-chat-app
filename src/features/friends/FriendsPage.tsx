@@ -112,7 +112,7 @@ const FriendsPage: React.FC = () => {
     };
 
     return (
-        <div className="flex flex-col w-full max-w-[1000px] bg-base-100 mx-auto p-4 sm:p-6 gap-4">
+        <div className="flex flex-col w-full max-w-[1000px] bg-base-100 mx-auto p-4 sm:p-6 gap-4 justify-center">
             <Tabs
                 aria-label="Friends Management Options"
                 variant="solid"
@@ -180,7 +180,7 @@ const FriendsPage: React.FC = () => {
                         {friendsLoading && <div className='flex justify-center p-8'><Spinner /></div>}
                         {friendsError && <p className="text-danger-500 text-center">Error loading friends.</p>}
                         {!friendsLoading && !friendsError && (
-                            <ul className="flex flex-row flex-wrap gap-2">
+                            <ul className="flex flex-row flex-wrap justify-center gap-2">
                                 {friends.length === 0 && <li className="text-base-content/60 text-center p-8">Your friends list is empty.</li>}
                                 {friends.map(friend =>
                                     renderUserCard(

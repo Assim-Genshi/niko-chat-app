@@ -1,4 +1,4 @@
-dev{ pkgs, ... }: {
+dev{ pkgsv, ... }: {
   # Which nixpkgs channel to use.
   channel = "stable-23.11"; # Or "unstable"
 
