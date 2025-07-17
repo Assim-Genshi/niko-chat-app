@@ -1,5 +1,4 @@
 // src/utils/auth.ts
-// src/utils/auth.ts
 import { supabase } from '../supabase/supabaseClient';
 import { addToast } from "@heroui/react";
 // Session type might not be needed here if not used

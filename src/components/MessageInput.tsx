@@ -129,7 +129,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
 
   // ─────────────────────── jsx ─────────────────────────
   return (
-    <div className="p-2 bg-base-100 sticky bottom-0">
+    <div className="fixed bottom-0 w-full p-2 bg-base-100 md:sticky md:bottom-0 z-50">
       <form
         onSubmit={handleSend}
         onDragOver={onDragOver}
@@ -142,7 +142,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       >
         {/* drag‑overlay */}
         {isDragging && (
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-base-100/80 backdrop-blur rounded-3xl">
+          <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-base-100/80 backdrop-blur rounded-3xl">
             <CloudArrowUpIcon className="w-12 h-12 text-brand-500" />
             <p className="font-bold text-brand-500">Drop image to upload</p>
           </div>

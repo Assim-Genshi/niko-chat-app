@@ -17,14 +17,11 @@ const FALLBACK_PROFILE_PIC = "https://placehold.co/64x64/7F9CF5/E0E7FF?text=User
 
 const MobileBottomNav = () => {
   const { session } = useAuth();
-  const { authUser } = useProfilePageLogic();
+  const { authUser, profileData } = useProfilePageLogic();
   const { incomingRequests, loading: friendsLoading } = useFriends(); // <-- Use useFriends hook
-
-  const profilePicUrl = authUser?.user_metadata?.profilePic || undefined;
-  const displayName = authUser?.user_metadata?.name ||
-                      authUser?.user_metadata?.display_name ||
-                      authUser?.email?.split('@')[0] ||
-                      "User";
+  
+  const displayName = authUser?.user_metadata?.name || authUser?.user_metadata?.display_name || authUser?.user_metadata?.username || authUser?.email?.split('@')[0] || "User";
+  const profilePicUrl = profileData?.avatar_url || "/profile/avatar.jpg";
 
   const incomingCount = incomingRequests?.length || 0;
 

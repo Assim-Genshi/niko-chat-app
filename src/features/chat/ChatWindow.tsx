@@ -7,7 +7,7 @@ import {
   Modal, ModalContent, ModalHeader, ModalFooter, ModalBody, addToast
 } from '@heroui/react';
 import {
-  EllipsisVerticalIcon, ArrowDownIcon, CheckIcon, ClockIcon,
+  EllipsisVerticalIcon, ArrowDownIcon, CheckIcon, ArrowLeftIcon, ClockIcon,
   ArrowPathIcon, ArrowUturnLeftIcon, ExclamationCircleIcon
 } from '@heroicons/react/24/solid';
 import { useAuth } from '../../contexts/AuthContext';
@@ -19,6 +19,7 @@ import { PlanBadge } from '../../components/PlanBadge';
 import { cn } from '../../lib/utils';
 import { IconCopy, IconTrash } from '@tabler/icons-react';
 import { MessageInput } from '../../components/MessageInput';
+import { useNavigate } from 'react-router-dom';
 
 interface ChatWindowProps {
   conversation: ConversationPreview;
@@ -171,6 +172,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversation }) => {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const prevScrollHeightRef = useRef<number | null>(null);
   const initialScrollDoneRef = useRef(false);
+  const navigate = useNavigate();
 
   const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
     messagesEndRef.current?.scrollIntoView({ behavior });
@@ -219,9 +221,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversation }) => {
 
   return (
     <>
-      <div className="w-full flex flex-col h-full relative">
+      <div className="w-full py-10 md:py-0 flex flex-col h-full relative">
         {/* Header */}
-        <div className="p-3 flex items-center space-x-3 sticky top-0 z-20 cursor-pointer bg-base-100/80 backdrop-blur-md">
+        <div className="fixed w-full p-3 flex items-center space-x-3 md:sticky top-0 z-20 cursor-pointer bg-base-100/80 backdrop-blur-md">
+          <Button isIconOnly size='sm' onPress={() => navigate('/chat')} className="flex md:hidden bg-transparent" aria-label="Back">
+            <ArrowLeftIcon className='w-5 h-5'/>
+          </Button>
           <Avatar src={conversation.display_avatar || '/profile/avatar.jpg'} size="md" />
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
